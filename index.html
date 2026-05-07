@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentations · DevNinja</title>
+  <meta name="description" content="Technical presentations from DevNinja on AI, engineering, and modern software development.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="https://devninja.in" class="logo">DevNinja</a>
+    <span class="logo-sep">/</span>
+    <span class="site-name">Presentations</span>
+  </div>
+</header>
+
+<main class="main">
+  <div class="search-wrap">
+    <input
+      class="search-input"
+      type="search"
+      id="search"
+      placeholder="Search presentations…"
+      autocomplete="off"
+      aria-label="Search presentations"
+    >
+  </div>
+  <div class="card-grid" id="grid"></div>
+  <div class="empty" id="empty">No presentations found.</div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© 2026 DevNinja. Professional tech insights for modern teams.</span>
+    <a
+      class="footer-link"
+      href="https://whatsapp.com/channel/0029Va4bjZE3wtb3J2FWPr2V"
+      target="_blank"
+      rel="noopener noreferrer"
+    >📱 Join Community</a>
+  </div>
+</footer>
+
+<script>
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  const search = document.getElementById('search');
+  let all = [];
+
+  function formatDate(iso) {
+    return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  function render(items) {
+    grid.innerHTML = items.map(p => `
+      <a class="card" href="/${p.slug}/">
+        <div class="card-title">${p.title}</div>
+        <div class="card-desc">${p.description}</div>
+        <div class="card-tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <div class="card-date">${formatDate(p.date)}</div>
+      </a>
+    `).join('');
+    empty.classList.toggle('visible', items.length === 0);
+  }
+
+  function filter(q) {
+    const t = q.toLowerCase().trim();
+    if (!t) return all;
+    return all.filter(p =>
+      p.title.toLowerCase().includes(t) ||
+      p.description.toLowerCase().includes(t) ||
+      p.tags.some(tag => tag.toLowerCase().includes(t))
+    );
+  }
+
+  search.addEventListener('input', e => render(filter(e.target.value)));
+
+  fetch('presentations.json')
+    .then(r => r.json())
+    .then(data => {
+      all = data.sort((a, b) => b.date.localeCompare(a.date));
+      render(all);
+    });
+</script>
+
+</body>
+</html>
