@@ -72,7 +72,10 @@ body {
   transition: border-color .15s;
 }
 .search-input::placeholder { color: var(--text-muted); }
-.search-input:focus { border-color: var(--tc-green); }
+.search-input:focus {
+  border-color: var(--tc-green);
+  box-shadow: 0 0 0 3px rgba(0, 208, 132, 0.2);
+}
 
 /* ── Card grid ── */
 .card-grid {
