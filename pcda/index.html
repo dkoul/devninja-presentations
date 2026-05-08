@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reimagining the Deming Cycle for the AI Era · Red Hat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#151515;--ink-rgb:21,21,21;
+  --paper:#ffffff;--paper-rgb:255,255,255;
+  --rh-red:#ee0000;--rh-red-rgb:238,0,0;--rh-red-light:#ff442b;
+  --display:"Red Hat Display",sans-serif;
+  --text:"Red Hat Text",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--text);-webkit-font-smoothing:antialiased}
+canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+canvas#bg-light{opacity:0}
+canvas#bg-dark{opacity:1}
+body.light-bg canvas#bg-light{opacity:1}
+body.light-bg canvas#bg-dark{opacity:0}
+#deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+.slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:5vh 6vw 8vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+.slide.light{color:var(--ink);background:var(--paper)}
+.slide.dark{color:var(--paper);background:var(--ink)}
+.slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+.slide.light::before{background:rgba(var(--paper-rgb),.85)}
+.slide.dark::before{background:rgba(var(--ink-rgb),.85)}
+.slide.hero.light::before{background:rgba(var(--paper-rgb),.2)}
+.slide.hero.dark::before{background:rgba(var(--ink-rgb),.15)}
+.chrome{display:flex;justify-content:space-between;font-family:var(--text);font-weight:500;font-size:11px;letter-spacing:.03em;opacity:.6;margin-bottom:3vh}
+.foot{margin-top:auto;display:flex;justify-content:space-between;font-family:var(--text);font-weight:500;font-size:11px;letter-spacing:.03em;opacity:.5;padding-top:2vh}
+.frame{flex:1;display:flex;flex-direction:column;min-height:0}
+.h-hero{font-family:var(--display);font-weight:900;font-size:8vw;line-height:1;letter-spacing:-.02em}
+.h-xl{font-family:var(--display);font-weight:700;font-size:5vw;line-height:1.1;letter-spacing:-.01em}
+.h-md{font-family:var(--display);font-weight:600;font-size:2vw;line-height:1.25}
+.lead{font-family:var(--text);font-weight:400;font-size:1.6vw;line-height:1.5;opacity:.85;margin-top:2vh}
+.body{font-family:var(--text);font-weight:400;font-size:1.1vw;line-height:1.6;opacity:.8}
+.meta-row{display:flex;gap:1em;font-family:var(--text);font-weight:500;font-size:.9vw;letter-spacing:.03em;opacity:.6;margin-top:3vh}
+.grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:2vh 3vw;flex:1;align-content:start;margin-top:3vh}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2vh 3vw;flex:1;align-content:start;margin-top:3vh}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:3vw;flex:1;align-content:start;margin-top:3vh}
+.card{padding:2vh 1.5vw;background:rgba(127,127,127,.08);border-radius:4px}
+.card .t{font-family:var(--display);font-weight:600;font-size:1.4vw;margin-bottom:.8vh}
+.card .d{font-family:var(--text);font-size:1vw;line-height:1.5;opacity:.75}
+.stat{padding:1.5vh 0;border-top:1px solid rgba(127,127,127,.25)}
+.stat .n{font-family:var(--display);font-weight:800;font-size:4vw;letter-spacing:-.02em;color:var(--rh-red)}
+.slide.dark .stat .n{color:var(--rh-red-light)}
+.stat .l{font-family:var(--text);font-size:1vw;opacity:.7;margin-top:.5vh}
+.callout{padding:2vh 2vw;border-left:3px solid var(--rh-red);background:rgba(127,127,127,.06);margin-top:2vh}
+.callout .q{font-family:var(--display);font-weight:600;font-size:1.4vw;line-height:1.4}
+.callout .src{font-family:var(--text);font-size:.9vw;opacity:.6;margin-top:1vh}
+.rowline{display:grid;grid-template-columns:1fr 2fr;gap:2vw;padding:1.5vh 0;border-top:1px solid rgba(127,127,127,.2);align-items:center}
+.rowline .k{font-family:var(--display);font-weight:700;font-size:1.3vw}
+.rowline .v{font-family:var(--text);font-size:1vw;opacity:.8}
+.accent{color:var(--rh-red)}
+.slide.dark .accent{color:var(--rh-red-light)}
+#nav{position:fixed;left:50%;bottom:2vh;transform:translateX(-50%);z-index:30;display:flex;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(0,0,0,.2);backdrop-filter:blur(10px)}
+#nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s;border:0;padding:0}
+#nav .dot.active{background:var(--rh-red);width:20px;border-radius:999px}
+body.light-bg #nav{background:rgba(255,255,255,.3)}
+body.light-bg #nav .dot{background:rgba(0,0,0,.2)}
+body.light-bg #nav .dot.active{background:var(--rh-red)}
+</style>
+</head>
+<body>
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+
+<!-- SLIDE 1: Cover -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Deepak Koul · 2026</div><div></div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero">Reimagining<br>the Deming Cycle</h1>
+    <p class="lead" style="max-width:55vw">Human Intent, AI Execution, and the Future of Continuous Improvement</p>
+    <div class="meta-row">
+      <span>Deepak Koul</span><span>·</span><span>Senior Manager Software Engineering</span><span>·</span><span>Red Hat</span>
+    </div>
+  </div>
+  <div class="foot"><div>AI and the future of PDCA</div><div></div></div>
+</section>
+
+<!-- SLIDE 2: What is PDCA -->
+<section class="slide light">
+  <div class="chrome"><div>Foundations</div><div>01 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Plan-Do-Check-Act</h2>
+    <p class="lead" style="max-width:60vw">The Deming Cycle: improvement through experimentation, observation, learning, and adjustment.</p>
+    <div class="grid-4">
+      <div class="card"><div class="t">Plan</div><div class="d">Define a change or experiment. Identify what to improve and how to measure success.</div></div>
+      <div class="card"><div class="t">Do</div><div class="d">Execute the change. Implement on a small scale to test the hypothesis.</div></div>
+      <div class="card"><div class="t">Check</div><div class="d">Examine outcomes and learn. Did the change produce expected results?</div></div>
+      <div class="card"><div class="t">Act</div><div class="d">Standardize improvements or adjust direction. Iterate and begin again.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>The universal feedback loop</div><div>Foundations</div></div>
+</section>
+
+<!-- SLIDE 3: Deming's Legacy -->
+<section class="slide dark">
+  <div class="chrome"><div>History</div><div>02 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">W. Edwards Deming</h2>
+    <p class="lead" style="max-width:55vw">Systems thinking, statistical quality control, and continuous improvement through experimentation.</p>
+    <div class="grid-2" style="margin-top:4vh">
+      <div>
+        <p class="body">His ideas profoundly influenced post-war Japanese manufacturing, especially Toyota. These principles shaped Lean manufacturing, which later influenced Agile software development.</p>
+        <div class="callout" style="margin-top:3vh">
+          <div class="q">"In God we trust. All others must bring data."</div>
+          <div class="src">— W. Edwards Deming</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat"><div class="n">1950s</div><div class="l">Toyota Production System emerges</div></div>
+        <div class="stat"><div class="n">2001</div><div class="l">Agile Manifesto published</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>The intellectual roots of iteration</div><div>History</div></div>
+</section>
+
+<!-- SLIDE 4: PDCA to Agile -->
+<section class="slide light">
+  <div class="chrome"><div>Connection</div><div>03 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">PDCA Became Agile</h2>
+    <p class="lead" style="max-width:55vw">The resemblance is not accidental.</p>
+    <div class="grid-2" style="margin-top:3vh">
+      <div>
+        <div class="h-md" style="margin-bottom:2vh;opacity:.6">Deming Cycle</div>
+        <div class="rowline"><div class="k">Plan</div><div class="v">Define a change or experiment</div></div>
+        <div class="rowline"><div class="k">Do</div><div class="v">Execute the change</div></div>
+        <div class="rowline"><div class="k">Study</div><div class="v">Examine outcomes and learn</div></div>
+        <div class="rowline"><div class="k">Act</div><div class="v">Standardize or adjust</div></div>
+      </div>
+      <div>
+        <div class="h-md" style="margin-bottom:2vh;opacity:.6">Agile Sprint</div>
+        <div class="rowline"><div class="k">Planning</div><div class="v">Sprint planning session</div></div>
+        <div class="rowline"><div class="k">Build</div><div class="v">Development and testing</div></div>
+        <div class="rowline"><div class="k">Review</div><div class="v">Sprint review and retrospective</div></div>
+        <div class="rowline"><div class="k">Adapt</div><div class="v">Process and backlog adjustment</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Knowledge emerges through iteration</div><div>Connection</div></div>
+</section>
+
+<!-- SLIDE 5: Divider - AI Shift -->
+<section class="slide hero light">
+  <div class="chrome"><div>Act II</div><div>04 / 20</div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero">The AI Shift</h1>
+    <p class="lead" style="max-width:50vw">What changes when execution becomes cheap and analysis becomes instant?</p>
+  </div>
+  <div class="foot"><div></div><div></div></div>
+</section>
+
+<!-- SLIDE 6: Old Costs -->
+<section class="slide dark">
+  <div class="chrome"><div>The Problem</div><div>05 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Experimentation Was Expensive</h2>
+    <p class="lead" style="max-width:55vw">Every step in the improvement loop required human effort, coordination, and time.</p>
+    <div class="grid-4">
+      <div class="card"><div class="t">Execute tests manually</div><div class="d">Engineers wrote, ran, and monitored every experiment by hand.</div></div>
+      <div class="card"><div class="t">Analyze data manually</div><div class="d">Results required human interpretation, often days or weeks later.</div></div>
+      <div class="card"><div class="t">Coordinate communication</div><div class="d">Sharing findings required meetings, documents, and alignment.</div></div>
+      <div class="card"><div class="t">Apply changes manually</div><div class="d">Every improvement had to be implemented step by step.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>The feedback loop was measured in weeks, not seconds</div><div>Legacy</div></div>
+</section>
+
+<!-- SLIDE 7: AI Capabilities -->
+<section class="slide light">
+  <div class="chrome"><div>The Solution</div><div>06 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">What AI Systems Can Do Now</h2>
+    <p class="lead" style="max-width:55vw">AI dramatically compresses the cost of iteration.</p>
+    <div class="grid-4">
+      <div class="card"><div class="t">Code generation</div><div class="d">Generate, test, and refactor code autonomously</div></div>
+      <div class="card"><div class="t">Pattern detection</div><div class="d">Analyze patterns and detect anomalies at scale</div></div>
+      <div class="card"><div class="t">Process optimization</div><div class="d">Optimize workflows and recommend changes</div></div>
+      <div class="card"><div class="t">Continuous monitoring</div><div class="d">Monitor outcomes and adapt in real-time</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>The economics of iteration have changed</div><div>AI Capabilities</div></div>
+</section>
+
+<!-- SLIDE 8: The New Model -->
+<section class="slide hero dark">
+  <div class="chrome"><div>The Thesis</div><div>07 / 20</div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero" style="font-size:6vw">Human Intent,<br>AI Execution</h1>
+    <div class="grid-4" style="max-width:80vw;margin-top:4vh">
+      <div class="stat"><div class="n">Plan</div><div class="l">Human — Define intent and strategy</div></div>
+      <div class="stat"><div class="n">Do</div><div class="l">AI — Execute at machine speed</div></div>
+      <div class="stat"><div class="n">Study</div><div class="l">Human — Interpret and understand</div></div>
+      <div class="stat"><div class="n">Act</div><div class="l">AI — Operationalize improvements</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>The cycle becomes dramatically faster</div><div></div></div>
+</section>
+
+<!-- SLIDE 9: Plan - Human Intent -->
+<section class="slide light">
+  <div class="chrome"><div>Deep Dive</div><div>08 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Plan: Human Intent</h2>
+    <p class="lead" style="max-width:55vw">Planning remains fundamentally human because it requires capabilities AI cannot replicate.</p>
+    <div class="grid-4">
+      <div class="card"><div class="t">Contextual understanding</div><div class="d">Grasping the full situation and its nuances</div></div>
+      <div class="card"><div class="t">Ethical judgment</div><div class="d">Deciding what should vs. shouldn't be done</div></div>
+      <div class="card"><div class="t">Strategic prioritization</div><div class="d">Choosing what matters most given constraints</div></div>
+      <div class="card"><div class="t">Long-term thinking</div><div class="d">Considering consequences beyond the immediate</div></div>
+    </div>
+    <div class="callout"><div class="q">Humans determine: What matters. What success means. Which risks are acceptable.</div></div>
+  </div>
+  <div class="foot"><div>AI can assist, but humans define purpose</div><div>Plan</div></div>
+</section>
+
+<!-- SLIDE 10: Do - AI Execution -->
+<section class="slide dark">
+  <div class="chrome"><div>Deep Dive</div><div>09 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Do: AI Execution</h2>
+    <p class="lead" style="max-width:55vw">AI systems can execute changes at machine speed, running thousands of experiments in parallel.</p>
+    <div class="grid-3">
+      <div class="card"><div class="t">Speed</div><div class="d">Execute thousands of variations while humans complete one. Parallel experimentation at scale.</div></div>
+      <div class="card"><div class="t">Consistency</div><div class="d">No fatigue, no variation, no human error. Every execution follows protocol precisely.</div></div>
+      <div class="card"><div class="t">Scale</div><div class="d">Handle complexity that would overwhelm human teams. Coordinate across systems seamlessly.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>Execution becomes a commodity</div><div>Do</div></div>
+</section>
+
+<!-- SLIDE 11: Study - Human Interpretation -->
+<section class="slide light">
+  <div class="chrome"><div>Deep Dive</div><div>10 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Study: Human Interpretation</h2>
+    <p class="lead" style="max-width:55vw">AI can surface patterns. Interpreting what they mean requires human judgment.</p>
+    <div class="grid-2" style="margin-top:3vh">
+      <div>
+        <p class="body">Understanding why something worked or failed, and what it implies for strategy, remains distinctly human. Context, culture, and consequences all require human interpretation.</p>
+        <div class="callout" style="margin-top:3vh">
+          <div class="q">"Data tells you what. Humans understand why."</div>
+          <div class="src">— The interpretation gap</div>
+        </div>
+      </div>
+      <div>
+        <div class="stat"><div class="n">Patterns</div><div class="l">AI provides: Correlations, anomalies, trends</div></div>
+        <div class="stat"><div class="n">Meaning</div><div class="l">Humans provide: Interpretation, implications, decisions</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>The gap between data and wisdom</div><div>Study</div></div>
+</section>
+
+<!-- SLIDE 12: Act - AI Operationalization -->
+<section class="slide dark">
+  <div class="chrome"><div>Deep Dive</div><div>11 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Act: AI Operationalization</h2>
+    <p class="lead" style="max-width:55vw">Once humans decide what to do, AI can operationalize those decisions at scale.</p>
+    <div class="grid-4">
+      <div class="card"><div class="t">Deploy changes</div><div class="d">Roll out improvements across systems automatically</div></div>
+      <div class="card"><div class="t">Update documentation</div><div class="d">Keep processes and docs in sync with changes</div></div>
+      <div class="card"><div class="t">Notify stakeholders</div><div class="d">Communicate changes to the right people</div></div>
+      <div class="card"><div class="t">Monitor impact</div><div class="d">Track whether changes produce expected outcomes</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>Operationalization becomes seamless</div><div>Act</div></div>
+</section>
+
+<!-- SLIDE 13: Divider - But -->
+<section class="slide hero light">
+  <div class="chrome"><div>Act III</div><div>12 / 20</div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero">But...</h1>
+    <p class="lead" style="max-width:50vw">Speed alone does not guarantee wisdom.</p>
+  </div>
+  <div class="foot"><div></div><div></div></div>
+</section>
+
+<!-- SLIDE 14: Over-automation -->
+<section class="slide dark">
+  <div class="chrome"><div>Risk</div><div>13 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">The Over-Automation Trap</h2>
+    <p class="lead" style="max-width:55vw">If AI handles all four stages, the cycle becomes a black box. The organization loses understanding.</p>
+    <div class="grid-2" style="margin-top:3vh">
+      <div>
+        <p class="body">Without human involvement in planning and interpretation, organizations optimize for metrics without understanding context. They become faster at doing the wrong things.</p>
+        <div class="callout" style="margin-top:3vh">
+          <div class="q">"Automating without understanding is delegating responsibility without accountability."</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:2vh"><div class="t">Loss of agency</div><div class="d">Teams no longer understand why decisions are made</div></div>
+        <div class="card"><div class="t">Blind optimization</div><div class="d">Maximizing metrics without understanding tradeoffs</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Faster is not always better</div><div>Risk</div></div>
+</section>
+
+<!-- SLIDE 15: Shallow Learning -->
+<section class="slide light">
+  <div class="chrome"><div>Risk</div><div>14 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">The Shallow Learning Trap</h2>
+    <p class="lead" style="max-width:55vw">If AI executes improvements automatically, humans may never learn why certain changes work.</p>
+    <div class="grid-2" style="margin-top:3vh">
+      <div class="card">
+        <div class="t">Deep Learning (Good)</div>
+        <div class="d">Teams understand why things work. Knowledge transfers between people. Organization can adapt to new contexts. Judgment improves over time.</div>
+      </div>
+      <div class="card" style="opacity:.7">
+        <div class="t">Shallow Learning (Danger)</div>
+        <div class="d">AI improves metrics, humans don't know why. Knowledge stays in the system, not the team. Organization becomes dependent on tools. Human judgment atrophies.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>The difference between using AI and depending on AI</div><div>Risk</div></div>
+</section>
+
+<!-- SLIDE 16: Human Judgment -->
+<section class="slide dark">
+  <div class="chrome"><div>Principle</div><div>15 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Preserving Human Judgment</h2>
+    <p class="lead" style="max-width:55vw">Complex systems require judgment that AI cannot provide.</p>
+    <div class="grid-3">
+      <div class="card"><div class="t">Direction</div><div class="d">Deciding what to optimize for. Choosing which metrics matter. Defining success.</div></div>
+      <div class="card"><div class="t">Guardrails</div><div class="d">Setting boundaries on what AI can do. Defining ethical limits. Preventing harmful optimization.</div></div>
+      <div class="card"><div class="t">Override</div><div class="d">The ability to say no. To stop, reverse, or redirect when AI recommendations feel wrong.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>Judgment cannot be delegated</div><div>Principle</div></div>
+</section>
+
+<!-- SLIDE 17: The Balance -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Synthesis</div><div>16 / 20</div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero" style="font-size:7vw">Finding<br>the Balance</h1>
+    <p class="lead" style="max-width:55vw">The goal is not to remove humans from the loop. It's to put humans where they add the most value.</p>
+    <div class="meta-row" style="margin-top:4vh">
+      <span>Humans: Intent + Interpretation</span><span>·</span><span>AI: Execution + Operationalization</span>
+    </div>
+  </div>
+  <div class="foot"><div>Not human or AI. Human with AI.</div><div></div></div>
+</section>
+
+<!-- SLIDE 18: Takeaways -->
+<section class="slide light">
+  <div class="chrome"><div>Summary</div><div>17 / 20</div></div>
+  <div class="frame">
+    <h2 class="h-xl">Key Takeaways</h2>
+    <div style="margin-top:3vh">
+      <div class="rowline"><div class="k" style="color:var(--rh-red)">01</div><div class="v">The Deming Cycle's core insight survives: improvement emerges through disciplined feedback loops.</div></div>
+      <div class="rowline"><div class="k" style="color:var(--rh-red)">02</div><div class="v">AI changes the economics of iteration. Execution and analysis become cheaper and faster.</div></div>
+      <div class="rowline"><div class="k" style="color:var(--rh-red)">03</div><div class="v">The new model: Humans own Plan and Study. AI owns Do and Act.</div></div>
+      <div class="rowline"><div class="k" style="color:var(--rh-red)">04</div><div class="v">Guard against over-automation and shallow learning. Speed without wisdom is just faster failure.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>The future of continuous improvement</div><div>Summary</div></div>
+</section>
+
+<!-- SLIDE 19: CTA -->
+<section class="slide hero light">
+  <div class="chrome"><div>Action</div><div>18 / 20</div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero" style="font-size:5vw">In your team,<br>which parts of the cycle<br>should AI handle?</h1>
+    <p class="lead" style="max-width:50vw">Start identifying the execution and operationalization tasks that don't require human judgment.</p>
+  </div>
+  <div class="foot"><div></div><div></div></div>
+</section>
+
+<!-- SLIDE 20: Close -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Red Hat · 2026</div><div>20 / 20</div></div>
+  <div class="frame" style="justify-content:center">
+    <h1 class="h-hero">Questions?</h1>
+    <div class="meta-row" style="margin-top:4vh">
+      <span>Deepak Koul</span><span>·</span><span>Senior Manager Software Engineering</span><span>·</span><span>Red Hat</span>
+    </div>
+  </div>
+  <div class="foot"><div>Reimagining the Deming Cycle for the AI Era</div><div></div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+const VS=`attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+const FS_DARK=`precision highp float;uniform vec2 u_resolution;uniform float u_time;
+void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec3 col=vec3(0.08,0.08,0.08);
+float n=sin(uv.x*10.0+u_time*0.5)*sin(uv.y*10.0+u_time*0.3)*0.02;
+col+=n;gl_FragColor=vec4(col,1.0);}`;
+const FS_LIGHT=`precision highp float;uniform vec2 u_resolution;uniform float u_time;
+void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec3 col=vec3(0.96,0.96,0.96);
+float n=sin(uv.x*8.0+u_time*0.4)*sin(uv.y*8.0+u_time*0.2)*0.015;
+col+=n;gl_FragColor=vec4(col,1.0);}`;
+function bootGL(id,fs){const c=document.getElementById(id),gl=c.getContext('webgl');if(!gl)return()=>{};
+const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+gl.linkProgram(p);gl.useProgram(p);const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+const pos=gl.getAttribLocation(p,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+const lR=gl.getUniformLocation(p,'u_resolution'),lT=gl.getUniformLocation(p,'u_time');
+const resize=()=>{c.width=innerWidth;c.height=innerHeight;gl.viewport(0,0,c.width,c.height)};
+addEventListener('resize',resize);resize();
+return t=>{gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.drawArrays(gl.TRIANGLES,0,6)};}
+const dD=bootGL('bg-dark',FS_DARK),dL=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();(function loop(){const t=(Date.now()-t0)/1000;dD(t);dL(t);requestAnimationFrame(loop)})();
+const deck=document.getElementById('deck'),slides=deck.querySelectorAll('.slide'),nav=document.getElementById('nav');
+let idx=0,total=slides.length;deck.style.width=(total*100)+'vw';
+slides.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.onclick=()=>go(i);nav.appendChild(b)});
+function go(n){idx=Math.max(0,Math.min(total-1,n));deck.style.transform=`translateX(${-idx*100}vw)`;
+nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+const th=slides[idx].classList.contains('light')?'light':'dark';document.body.classList.toggle('light-bg',th==='light');}
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')go(idx+1);if(e.key==='ArrowLeft')go(idx-1)});
+let wa=0;addEventListener('wheel',e=>{wa+=e.deltaY;if(Math.abs(wa)>50){go(idx+(wa>0?1:-1));wa=0}},{passive:true});
+go(0);
+</script>
+</body>
+</html>
