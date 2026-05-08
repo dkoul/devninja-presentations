@@ -19,5 +19,12 @@
     "description": "Harness engineering principles for building safe, reliable, and governed AI systems through risk-based testing approaches.",
     "tags": ["Reliability", "Safety", "Governance"],
     "date": "2026-05-08"
+  },
+  {
+    "slug": "pcda",
+    "title": "PCDA",
+    "description": "Reimagining the Deming Cycle in AI",
+    "tags": ["AI", "Methodology", "Process"],
+    "date": "2026-05-08"
   }
 ]
