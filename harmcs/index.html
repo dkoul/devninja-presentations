@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARMCS Framework · Risk-Based Testing for AI Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Ink Classic theme */
+    --ink:#0a0a0b;
+    --ink-rgb:10,10,11;
+    --paper:#f1efea;
+    --paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;
+    --ink-tint:#18181a;
+
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --sans:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:5vh 5vw 9vh 5vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.84);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.84);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.45}
+
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.55;margin-bottom:2.2vh}
+  .h-hero{font-family:var(--serif-en);font-weight:700;font-size:8vw;line-height:.98;letter-spacing:-.025em}
+  .h-xl{font-family:var(--serif-en);font-weight:700;font-size:5vw;line-height:1.1;letter-spacing:-.02em}
+  .h-lg{font-family:var(--serif-en);font-weight:700;font-size:3.8vw;line-height:1.15;letter-spacing:-.015em}
+  .h-sub{font-family:var(--serif-en);font-weight:400;font-size:2.4vw;line-height:1.35;letter-spacing:0;opacity:.7;font-style:italic}
+  .h-md{font-family:var(--serif-en);font-weight:600;font-size:2vw;line-height:1.3}
+  .lead{font-family:var(--sans);font-weight:400;font-size:1.5vw;line-height:1.55;opacity:.82}
+  .body{font-family:var(--sans);font-weight:400;font-size:max(13px,1.05vw);line-height:1.65;opacity:.78}
+  .meta-row{display:flex;gap:1em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.12em;text-transform:uppercase;opacity:.55}
+
+  .callout{padding:2.5vh 2vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-body-en);font-size:max(14px,1.1vw);line-height:1.6;opacity:.9;font-style:italic}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.04)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.05)}
+  .callout .cite{display:block;margin-top:1.4vh;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;opacity:.55;font-style:normal}
+
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:.05em;height:.22em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:.05em;height:.22em;background:rgba(var(--ink-rgb),.1);z-index:-1}
+
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3.5vw;align-items:start}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3.5vw;align-items:start}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.5vw;flex:1;align-content:center}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:2vh 2.5vw;flex:1;align-content:center}
+
+  .dim-card{display:flex;flex-direction:column;gap:.5vh;padding:1.8vh 1.5vw;border-top:2px solid currentColor}
+  .dim-card .dim-letter{font-family:var(--serif-en);font-weight:800;font-size:3.5vw;line-height:1;letter-spacing:-.02em}
+  .dim-card .dim-name{font-family:var(--sans);font-weight:600;font-size:max(12px,.95vw);letter-spacing:.02em;margin-top:.5vh}
+  .dim-card .dim-desc{font-family:var(--sans);font-size:max(11px,.85vw);line-height:1.5;opacity:.7;margin-top:.3vh}
+
+  .stat-card{display:flex;flex-direction:column;gap:.4vh;align-items:flex-start;padding-top:1.4vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.3)}
+  .stat-card .stat-label{font-family:var(--mono);font-size:max(9px,.7vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+  .stat-card .stat-nb{font-family:var(--serif-en);font-weight:700;font-size:3.8vw;line-height:.95;letter-spacing:-.02em}
+  .stat-card .stat-note{font-family:var(--sans);font-size:max(11px,.85vw);line-height:1.45;opacity:.68;margin-top:.4vh}
+
+  .type-row{display:grid;grid-template-columns:auto 1fr;gap:1.5vw;padding:1.4vh 0;border-top:1px solid rgba(127,127,127,.25);align-items:start}
+  .type-row .type-name{font-family:var(--sans);font-weight:700;font-size:max(13px,1.05vw)}
+  .type-row .type-desc{font-family:var(--sans);font-size:max(12px,.95vw);opacity:.75;line-height:1.5}
+
+  .level-row{display:grid;grid-template-columns:3em 1fr;gap:1.2vw;padding:1vh 0;border-top:1px solid rgba(127,127,127,.2);align-items:center}
+  .level-row .level-num{font-family:var(--serif-en);font-weight:700;font-size:1.8vw;text-align:center}
+  .level-row .level-desc{font-family:var(--sans);font-size:max(12px,.95vw);opacity:.8}
+
+  .layer-card{padding:1.8vh 1.5vw;border-left:2px solid currentColor}
+  .slide.light .layer-card{background:rgba(var(--ink-rgb),.03)}
+  .slide.dark .layer-card{background:rgba(var(--paper-rgb),.04)}
+  .layer-card .layer-name{font-family:var(--sans);font-weight:700;font-size:max(13px,1.1vw);margin-bottom:.8vh}
+  .layer-card .layer-desc{font-family:var(--sans);font-size:max(11px,.9vw);line-height:1.5;opacity:.75}
+
+  .compare-col{padding:2vh 1.8vw;border-top:2px solid currentColor}
+  .compare-col.old{opacity:.55;border-color:rgba(127,127,127,.4)}
+  .compare-col.new{border-color:currentColor}
+  .compare-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.65;margin-bottom:1.2vh}
+  .compare-title{font-family:var(--serif-en);font-weight:600;font-size:1.8vw;margin-bottom:1.5vh}
+  .compare-list{list-style:none;display:flex;flex-direction:column;gap:1vh}
+  .compare-list li{font-family:var(--sans);font-size:max(12px,.95vw);line-height:1.5;padding-left:1.2em;position:relative}
+  .compare-list li::before{content:"→";position:absolute;left:0;opacity:.45}
+
+  .score-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1.5vw}
+  .score-cell{text-align:center;padding:1.5vh 0;border-top:2px solid currentColor}
+  .score-cell .score-dim{font-family:var(--serif-en);font-weight:800;font-size:2.2vw}
+  .score-cell .score-val{font-family:var(--mono);font-size:max(11px,.9vw);margin-top:.5vh;opacity:.7}
+
+  #nav{position:fixed;left:50%;bottom:2.4vh;transform:translateX(-50%);z-index:30;display:flex;gap:6px;padding:7px 12px;border-radius:999px;background:rgba(0,0,0,.2);backdrop-filter:blur(10px)}
+  #nav .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:18px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:2.8vh;right:2.5vw;z-index:30;font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.35;mix-blend-mode:difference;color:#aaa}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.motion-ready [data-anim="left"]{transform:translateX(-20px)}
+  body.motion-ready [data-anim="right"]{transform:translateX(20px)}
+  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(8px)}
+
+  @media (max-width:900px){
+    .h-hero{font-size:11vw}
+    .h-xl{font-size:7vw}
+    .grid-2-6-6,.grid-2-7-5{grid-template-columns:1fr}
+    .grid-3,.grid-6{grid-template-columns:1fr 1fr}
+    .score-grid{grid-template-columns:repeat(3,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → Navigate</div>
+
+<div id="deck">
+
+<!-- ============ ACT I: THE PROBLEM ============ -->
+
+<!-- PAGE 1: Cover -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Risk-Based Testing for AI</div>
+    <div>01 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:3.5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Introducing</div>
+    <h1 class="h-hero" style="font-size:7vw" data-anim>The HARMCS<br>Framework</h1>
+    <h2 class="h-sub" style="max-width:58vw" data-anim>Risk-Based Testing for AI Systems — A Core Discipline of Harness Engineering</h2>
+    <div class="meta-row" style="margin-top:2.5vh" data-anim>
+      <span>Hallucination</span><span>·</span><span>Autonomy</span><span>·</span><span>Recovery</span><span>·</span><span>Monetary</span><span>·</span><span>Confidentiality</span><span>·</span><span>Safety</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Harness Engineering</div>
+    <div>— 2026 —</div>
+  </div>
+</section>
+
+<!-- PAGE 2: The Paradigm Shift -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act I · The Problem</div>
+    <div>02 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:3.5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The shift</div>
+    <h2 class="h-xl" data-anim>From <span class="hi">deterministic computation</span><br>to <span class="hi">probabilistic cognition</span></h2>
+    <p class="lead" style="max-width:52vw; margin-top:1.5vh" data-anim>
+      AI systems have fundamentally changed what software engineering means — and what testing must become.
+    </p>
+  </div>
+  <div class="foot">
+    <div>The paradigm shift</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 3: Traditional vs AI -->
+<section class="slide dark" data-animate="directional">
+  <div class="chrome">
+    <div>Act I · The Problem</div>
+    <div>03 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>The contrast</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>Two different worlds</h2>
+    <div class="grid-2-6-6" style="margin-top:2vh">
+      <div class="compare-col old" data-anim="left">
+        <div class="compare-label">Traditional Systems</div>
+        <div class="compare-title">Deterministic</div>
+        <ul class="compare-list">
+          <li>Predictable state transitions</li>
+          <li>Explicit control flow</li>
+          <li>Stable logic execution</li>
+          <li>Bounded operational behavior</li>
+          <li>Exact assertions possible</li>
+        </ul>
+      </div>
+      <div class="compare-col new" data-anim="right">
+        <div class="compare-label">AI Systems</div>
+        <div class="compare-title">Probabilistic</div>
+        <ul class="compare-list">
+          <li>Stochastic outputs</li>
+          <li>Non-deterministic reasoning</li>
+          <li>Emergent behaviors</li>
+          <li>Contextual drift</li>
+          <li>Evaluation thresholds required</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>The fundamental difference</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 4: Assertions Are Broken -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act I · The Problem</div>
+    <div>04 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:3.5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The breakdown</div>
+    <h2 class="h-xl" data-anim>Traditional assertions<br>are <span class="hi">no longer meaningful</span></h2>
+    <div class="callout" style="max-width:50vw; margin-top:3vh; font-family:var(--mono); font-style:normal; font-size:max(13px,1.1vw)" data-anim>
+      Expected Output == Actual Output<br>
+      <span style="opacity:.5">// This doesn't work for AI</span>
+    </div>
+    <p class="lead" style="max-width:48vw; margin-top:2vh" data-anim>
+      Instead, AI systems require: <strong>Output satisfies acceptable probabilistic boundaries</strong>
+    </p>
+  </div>
+  <div class="foot">
+    <div>Beyond binary assertions</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 5: AI Failures Are Different -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act I · The Problem</div>
+    <div>05 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>The difference</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>AI failures are fundamentally different</h2>
+    <div class="grid-2-6-6" style="margin-top:2vh">
+      <div style="display:flex; flex-direction:column; gap:1.2vh" data-anim>
+        <div class="type-row">
+          <div class="type-name">Traditional</div>
+          <div class="type-desc">Null pointer exception</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">Traditional</div>
+          <div class="type-desc">Database timeout</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">Traditional</div>
+          <div class="type-desc">Incorrect calculation</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">Traditional</div>
+          <div class="type-desc">Memory leak</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">Traditional</div>
+          <div class="type-desc">Broken workflow</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1.2vh" data-anim>
+        <div class="type-row">
+          <div class="type-name">AI Failure</div>
+          <div class="type-desc">Hallucinated medical recommendation</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">AI Failure</div>
+          <div class="type-desc">Agentic infinite reasoning loop</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">AI Failure</div>
+          <div class="type-desc">Fabricated legal citation</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">AI Failure</div>
+          <div class="type-desc">Context poisoning</div>
+        </div>
+        <div class="type-row">
+          <div class="type-name">AI Failure</div>
+          <div class="type-desc">Unsafe autonomous action</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Semantic vs syntactic failures</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ============ ACT II: HARMCS INTRODUCTION ============ -->
+
+<!-- PAGE 6: Act II Divider -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act II · The Framework</div>
+    <div>06 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Introducing</div>
+    <h1 class="h-hero" style="font-size:9vw" data-anim>HARMCS</h1>
+    <p class="lead" style="max-width:50vw" data-anim>
+      A multidimensional risk surface model for AI operational exposure.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Act II</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 7: The Six Dimensions -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act II · The Framework</div>
+    <div>07 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Six dimensions</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>The HARMCS Model</h2>
+    <div class="grid-6" style="margin-top:2vh">
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">H</div>
+        <div class="dim-name">Hallucination Risk</div>
+        <div class="dim-desc">Fabricated, unsupported, or misleading outputs</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">A</div>
+        <div class="dim-name">Autonomy Level</div>
+        <div class="dim-desc">Degree of independent action without human intervention</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">R</div>
+        <div class="dim-name">Recovery Capability</div>
+        <div class="dim-desc">Ability to detect, contain, and recover from failure</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">M</div>
+        <div class="dim-name">Monetary Volatility</div>
+        <div class="dim-desc">Resource and cost behavior under operational load</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">C</div>
+        <div class="dim-name">Confidentiality</div>
+        <div class="dim-desc">Data sensitivity and information security exposure</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">S</div>
+        <div class="dim-name">Safety Boundaries</div>
+        <div class="dim-desc">Potential for harmful outcomes from AI behavior</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>The six dimensions</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 8: What HARMCS Enables -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act II · The Framework</div>
+    <div>08 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>What it enables</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>HARMCS provides structure for...</h2>
+    <div class="grid-3" style="margin-top:2vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Classification</div>
+        <div class="stat-nb" style="font-size:2.8vw">Risk<br>Scoring</div>
+        <div class="stat-note">Quantitative assessment of operational exposure</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Prioritization</div>
+        <div class="stat-nb" style="font-size:2.8vw">Test<br>Strategy</div>
+        <div class="stat-note">Focus testing effort where risk is highest</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Enforcement</div>
+        <div class="stat-nb" style="font-size:2.8vw">Governance<br>Controls</div>
+        <div class="stat-note">Release readiness and operational monitoring</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Structured risk management</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ============ ACT III: THE SIX DIMENSIONS ============ -->
+
+<!-- PAGE 9: H - Hallucination -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act III · Dimensions</div>
+    <div>09 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Dimension 1</div>
+    <h1 class="h-hero" style="font-size:12vw" data-anim>H</h1>
+    <h2 class="h-sub" style="max-width:50vw" data-anim>Hallucination Risk</h2>
+    <p class="lead" style="max-width:48vw; margin-top:1vh" data-anim>
+      Incorrect, fabricated, or misleading outputs presented with high confidence.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Hallucination</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 10: Hallucination Types -->
+<section class="slide light">
+  <div class="chrome">
+    <div>H · Hallucination</div>
+    <div>10 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Types of hallucination</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>Four hallucination categories</h2>
+    <div class="grid-2-6-6" style="margin-top:1.5vh">
+      <div style="display:flex; flex-direction:column; gap:1.5vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Factual Hallucination</div>
+          <div class="layer-desc">False information: fabricated references, non-existent legal precedents, incorrect medical guidance</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Contextual Hallucination</div>
+          <div class="layer-desc">Misunderstands user intent or retrieved context</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1.5vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Tool Hallucination</div>
+          <div class="layer-desc">Invokes non-existent APIs or claims unavailable capabilities</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Reasoning Hallucination</div>
+          <div class="layer-desc">Constructs internally inconsistent chains of reasoning</div>
+        </div>
+      </div>
+    </div>
+    <p class="body" style="margin-top:3vh; max-width:50vw" data-anim>
+      <strong>Testing:</strong> Groundedness evaluation, citation validation, contradiction detection, adversarial ambiguity testing
+    </p>
+  </div>
+  <div class="foot">
+    <div>Hallucination types</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 11: A - Autonomy -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>A · Autonomy</div>
+    <div>11 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Dimension 2</div>
+    <h2 class="h-xl" style="margin-bottom:3.5vh" data-anim>A · Autonomy Level</h2>
+    <p class="lead" style="max-width:50vw; margin-bottom:3vh" data-anim>
+      Degree to which the AI system can independently perform actions without human intervention.
+    </p>
+    <div style="max-width:45vw; display:flex; flex-direction:column; gap:.8vh" data-anim>
+      <div class="level-row"><div class="level-num">0</div><div class="level-desc">Advisory only</div></div>
+      <div class="level-row"><div class="level-num">1</div><div class="level-desc">Suggestive assistance</div></div>
+      <div class="level-row"><div class="level-num">2</div><div class="level-desc">Guided automation</div></div>
+      <div class="level-row"><div class="level-num">3</div><div class="level-desc">Semi-autonomous execution</div></div>
+      <div class="level-row"><div class="level-num">4</div><div class="level-desc">Autonomous workflow execution</div></div>
+      <div class="level-row"><div class="level-num">5</div><div class="level-desc">Fully autonomous adaptive agents</div></div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Autonomy spectrum</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 12: Autonomy Failures -->
+<section class="slide light">
+  <div class="chrome">
+    <div>A · Autonomy</div>
+    <div>12 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Failure modes</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>Autonomous systems fail differently</h2>
+    <div class="grid-2-6-6" style="margin-top:1.5vh">
+      <div style="display:flex; flex-direction:column; gap:1.5vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Tool Misuse</div>
+          <div class="layer-desc">Incorrect API invocation or execution</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Goal Drift</div>
+          <div class="layer-desc">Agent deviates from intended objectives</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1.5vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Recursive Looping</div>
+          <div class="layer-desc">Infinite retries or reasoning cycles</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Cascading Failure</div>
+          <div class="layer-desc">Errors propagate through multi-agent systems</div>
+        </div>
+      </div>
+    </div>
+    <p class="body" style="margin-top:3vh; max-width:52vw" data-anim>
+      <strong>Testing:</strong> Orchestration validation, bounded execution testing, workflow interruption recovery, scenario-based simulation
+    </p>
+  </div>
+  <div class="foot">
+    <div>Autonomous failure modes</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 13: R - Recovery -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>R · Recovery</div>
+    <div>13 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Dimension 3</div>
+    <h2 class="h-xl" style="margin-bottom:3.5vh" data-anim>R · Recovery Capability</h2>
+    <p class="lead" style="max-width:50vw; margin-bottom:3vh" data-anim>
+      The system's ability to detect, contain, and recover from failure. AI failures may propagate semantically before detection.
+    </p>
+    <div class="grid-3" style="margin-top:1vh" data-anim>
+      <div class="stat-card">
+        <div class="stat-label">Detection</div>
+        <div class="stat-nb" style="font-size:2.2vw">Can failures be recognized?</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Isolation</div>
+        <div class="stat-nb" style="font-size:2.2vw">Can spread be limited?</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Rollback</div>
+        <div class="stat-nb" style="font-size:2.2vw">Can state be reverted?</div>
+      </div>
+    </div>
+    <p class="body" style="margin-top:3vh; max-width:48vw" data-anim>
+      <strong>Testing:</strong> Tool failure injection, memory corruption simulation, chaos engineering principles
+    </p>
+  </div>
+  <div class="foot">
+    <div>Recovery dimensions</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 14: M - Monetary -->
+<section class="slide light">
+  <div class="chrome">
+    <div>M · Monetary</div>
+    <div>14 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Dimension 4</div>
+    <h2 class="h-xl" style="margin-bottom:3.5vh" data-anim>M · Monetary Volatility</h2>
+    <p class="lead" style="max-width:52vw; margin-bottom:3vh" data-anim>
+      AI infrastructure costs scale dynamically with token consumption, context expansion, model selection, and agent recursion.
+    </p>
+    <div class="grid-3" style="margin-top:1vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Pattern 1</div>
+        <div class="stat-nb" style="font-size:2.5vw">Token Explosion</div>
+        <div class="stat-note">Unbounded context growth causes excessive inference costs</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Pattern 2</div>
+        <div class="stat-nb" style="font-size:2.5vw">Recursive Costs</div>
+        <div class="stat-note">Autonomous loops repeatedly invoke expensive models</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Pattern 3</div>
+        <div class="stat-nb" style="font-size:2.5vw">Retrieval Load</div>
+        <div class="stat-note">Inefficient retrieval increases latency and infrastructure costs</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Cost failure patterns</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 15: C - Confidentiality -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>C · Confidentiality</div>
+    <div>15 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Dimension 5</div>
+    <h2 class="h-xl" style="margin-bottom:3.5vh" data-anim>C · Confidentiality</h2>
+    <p class="lead" style="max-width:52vw; margin-bottom:3vh" data-anim>
+      AI systems process sensitive data: PII, intellectual property, proprietary knowledge, regulated records.
+    </p>
+    <div class="grid-2-6-6" style="margin-top:1vh">
+      <div style="display:flex; flex-direction:column; gap:1.2vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Prompt Leakage</div>
+          <div class="layer-desc">Sensitive information appears in generated output</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Memory Persistence</div>
+          <div class="layer-desc">Cross-session contamination exposes prior user data</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1.2vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Retrieval Exposure</div>
+          <div class="layer-desc">Unauthorized documents accessible through RAG</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Training Memorization</div>
+          <div class="layer-desc">Models reproduce sensitive memorized content</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Confidentiality threats</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 16: S - Safety -->
+<section class="slide light">
+  <div class="chrome">
+    <div>S · Safety</div>
+    <div>16 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Dimension 6</div>
+    <h2 class="h-xl" style="margin-bottom:3.5vh" data-anim>S · Safety Boundaries</h2>
+    <p class="lead" style="max-width:52vw; margin-bottom:3vh" data-anim>
+      Potential for harmful outcomes: physical, financial, psychological, legal, reputational, and societal harm.
+    </p>
+    <div class="grid-3" style="margin-top:1vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Category</div>
+        <div class="stat-nb" style="font-size:2.2vw">Physical</div>
+        <div class="stat-note">Industrial robotics, medical devices</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Category</div>
+        <div class="stat-nb" style="font-size:2.2vw">Financial</div>
+        <div class="stat-note">Autonomous trading, fraud prevention</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Category</div>
+        <div class="stat-nb" style="font-size:2.2vw">Societal</div>
+        <div class="stat-note">Misinformation, manipulation at scale</div>
+      </div>
+    </div>
+    <p class="body" style="margin-top:3vh; max-width:50vw" data-anim>
+      <strong>Testing:</strong> Red-team adversarial simulation, refusal boundary testing, policy alignment analysis
+    </p>
+  </div>
+  <div class="foot">
+    <div>Safety categories</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ============ ACT IV: SCORING MODEL ============ -->
+
+<!-- PAGE 17: Act IV Divider -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act IV · Scoring</div>
+    <div>17 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Operationalizing HARMCS</div>
+    <h1 class="h-hero" style="font-size:6vw" data-anim>Quantitative<br>Scoring Model</h1>
+    <p class="lead" style="max-width:48vw" data-anim>
+      Each dimension receives a score from 1 to 5.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Act IV</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 18: Scoring Scale -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act IV · Scoring</div>
+    <div>18 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>The scale</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>Risk scoring interpretation</h2>
+    <div style="max-width:50vw; display:flex; flex-direction:column; gap:.8vh; margin-top:2vh" data-anim>
+      <div class="level-row"><div class="level-num">1</div><div class="level-desc">Minimal risk — Well-bounded, low exposure</div></div>
+      <div class="level-row"><div class="level-num">2</div><div class="level-desc">Low operational concern — Manageable with standard controls</div></div>
+      <div class="level-row"><div class="level-num">3</div><div class="level-desc">Moderate risk — Requires active monitoring</div></div>
+      <div class="level-row"><div class="level-num">4</div><div class="level-desc">High operational exposure — Enhanced controls required</div></div>
+      <div class="level-row"><div class="level-num">5</div><div class="level-desc">Critical risk — Maximum governance intensity</div></div>
+    </div>
+    <p class="body" style="margin-top:3vh; max-width:48vw" data-anim>
+      Total HARMCS Score = Sum of all six dimensions (range: 6–30)
+    </p>
+  </div>
+  <div class="foot">
+    <div>Scoring scale</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 19: Example Assessment -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act IV · Scoring</div>
+    <div>19 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Example</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>Sample HARMCS Assessment</h2>
+    <div class="score-grid" style="margin-top:2vh" data-anim>
+      <div class="score-cell"><div class="score-dim">H</div><div class="score-val">4</div></div>
+      <div class="score-cell"><div class="score-dim">A</div><div class="score-val">5</div></div>
+      <div class="score-cell"><div class="score-dim">R</div><div class="score-val">2</div></div>
+      <div class="score-cell"><div class="score-dim">M</div><div class="score-val">3</div></div>
+      <div class="score-cell"><div class="score-dim">C</div><div class="score-val">5</div></div>
+      <div class="score-cell"><div class="score-dim">S</div><div class="score-val">4</div></div>
+    </div>
+    <div style="text-align:center; margin-top:4vh" data-anim>
+      <div style="font-family:var(--mono); font-size:max(11px,.9vw); opacity:.6; margin-bottom:1vh">TOTAL SCORE</div>
+      <div style="font-family:var(--serif-en); font-weight:800; font-size:5vw">23 / 30</div>
+      <div style="font-family:var(--mono); font-size:max(12px,1vw); margin-top:1.5vh; letter-spacing:.1em">CRITICAL RISK</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Example assessment</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 20: Risk Classification -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act IV · Scoring</div>
+    <div>20 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Classification</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>Risk classification drives governance</h2>
+    <div class="grid-2-6-6" style="margin-top:2vh">
+      <div style="display:flex; flex-direction:column; gap:1vh" data-anim>
+        <div class="level-row"><div class="level-num" style="font-size:1.4vw">6–10</div><div class="level-desc"><strong>Low Risk</strong> — Standard deployment</div></div>
+        <div class="level-row"><div class="level-num" style="font-size:1.4vw">11–16</div><div class="level-desc"><strong>Moderate Risk</strong> — Enhanced monitoring</div></div>
+        <div class="level-row"><div class="level-num" style="font-size:1.4vw">17–22</div><div class="level-desc"><strong>High Risk</strong> — Human oversight required</div></div>
+        <div class="level-row"><div class="level-num" style="font-size:1.4vw">23–30</div><div class="level-desc"><strong>Critical Risk</strong> — Maximum governance</div></div>
+      </div>
+      <div data-anim>
+        <p class="body" style="margin-bottom:2vh"><strong>Classification influences:</strong></p>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:.8vh">
+          <li class="body">→ Deployment approvals</li>
+          <li class="body">→ Human oversight requirements</li>
+          <li class="body">→ Testing depth and coverage</li>
+          <li class="body">→ Rollback readiness</li>
+          <li class="body">→ Governance intensity</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Risk classification</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ============ ACT V: TESTING ARCHITECTURE ============ -->
+
+<!-- PAGE 21: Act V Divider -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act V · Architecture</div>
+    <div>21 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Implementation</div>
+    <h1 class="h-hero" style="font-size:5.5vw" data-anim>AI Testing<br>Architecture</h1>
+    <p class="lead" style="max-width:50vw" data-anim>
+      A mature architecture integrates five distinct testing layers.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Act V</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 22: Five Layers Overview -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act V · Architecture</div>
+    <div>22 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:3vh">
+    <div class="kicker" data-anim>The layers</div>
+    <h2 class="h-lg" style="margin-bottom:3vh" data-anim>Five testing layers</h2>
+    <div style="display:flex; flex-direction:column; gap:1.2vh">
+      <div class="layer-card" data-anim>
+        <div class="layer-name">1. Deterministic Testing</div>
+        <div class="layer-desc">Traditional validation: API testing, schema validation, contract testing, authentication, infrastructure</div>
+      </div>
+      <div class="layer-card" data-anim>
+        <div class="layer-name">2. Probabilistic Evaluation</div>
+        <div class="layer-desc">Evaluation replaces assertions: relevance, groundedness, coherence, completeness, factual consistency</div>
+      </div>
+      <div class="layer-card" data-anim>
+        <div class="layer-name">3. Adversarial Testing</div>
+        <div class="layer-desc">Robustness against hostile input: jailbreaks, prompt injection, retrieval poisoning, obfuscation</div>
+      </div>
+      <div class="layer-card" data-anim>
+        <div class="layer-name">4. Observability</div>
+        <div class="layer-desc">Flight recorder: prompts, responses, reasoning, tool calls, retrieval sources, token usage, memory state</div>
+      </div>
+      <div class="layer-card" data-anim>
+        <div class="layer-name">5. Continuous Evaluation</div>
+        <div class="layer-desc">Post-deployment: production drift, user feedback, benchmark updates, adaptive risk recalibration</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Five layers</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 23: Key Insight -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act V · Architecture</div>
+    <div>23 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The key insight</div>
+    <h2 class="h-xl" data-anim>AI testing never stops</h2>
+    <p class="lead" style="max-width:52vw; margin-top:2vh" data-anim>
+      Unlike traditional software, AI systems require <strong>continuous post-deployment evaluation</strong>.
+    </p>
+    <div class="callout" style="max-width:50vw; margin-top:3vh" data-anim>
+      Observability functions as the operational flight recorder for AI systems — capturing everything needed to understand behavior after the fact.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Continuous evaluation</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ============ ACT VI: HARNESS ENGINEERING ============ -->
+
+<!-- PAGE 24: Act VI Divider -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act VI · Harness Engineering</div>
+    <div>24 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The bigger picture</div>
+    <h1 class="h-hero" style="font-size:5vw" data-anim>Harness<br>Engineering</h1>
+    <p class="lead" style="max-width:52vw" data-anim>
+      HARMCS is not an isolated testing methodology. It's a foundational discipline within a new engineering field.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Act VI</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 25: What Is Harness Engineering -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act VI · Harness Engineering</div>
+    <div>25 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Definition</div>
+    <h2 class="h-xl" style="margin-bottom:3.5vh" data-anim>What is Harness Engineering?</h2>
+    <p class="lead" style="max-width:54vw; margin-bottom:3vh" data-anim>
+      Engineering operational control systems around AI models to constrain uncertainty, enforce reliability, and continuously evaluate outcomes.
+    </p>
+    <div class="grid-3" style="margin-top:1vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Component</div>
+        <div class="stat-nb" style="font-size:2vw">Orchestration</div>
+        <div class="stat-note">Control flow, retry logic, tool authorization</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Component</div>
+        <div class="stat-nb" style="font-size:2vw">Guardrails</div>
+        <div class="stat-note">Safety boundaries, policy enforcement</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Component</div>
+        <div class="stat-nb" style="font-size:2vw">Evaluators</div>
+        <div class="stat-note">Continuous quality assessment</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>The harness</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 26: HARMCS as Foundation -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act VI · Harness Engineering</div>
+    <div>26 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:3.5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The role of HARMCS</div>
+    <h2 class="h-xl" data-anim>HARMCS is the<br><span class="hi">decision-making foundation</span></h2>
+    <p class="lead" style="max-width:52vw; margin-top:2vh" data-anim>
+      It determines how the AI harness should adapt to varying operational risk profiles.
+    </p>
+    <div class="grid-3" style="margin-top:2vh">
+      <div class="body" data-anim>→ Evaluation depth</div>
+      <div class="body" data-anim>→ Orchestration constraints</div>
+      <div class="body" data-anim>→ Guardrail configuration</div>
+      <div class="body" data-anim>→ Human oversight requirements</div>
+      <div class="body" data-anim>→ Rollback policies</div>
+      <div class="body" data-anim>→ Observability priorities</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Risk-driven harness</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ============ ACT VII: CONCLUSION ============ -->
+
+<!-- PAGE 27: Research Challenges -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act VII · Future</div>
+    <div>27 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Open challenges</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>Unresolved research challenges</h2>
+    <div class="grid-2-6-6" style="margin-top:1.5vh">
+      <div style="display:flex; flex-direction:column; gap:1.2vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Benchmark Instability</div>
+          <div class="layer-desc">AI evaluation benchmarks degrade rapidly as models evolve</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Evaluator Reliability</div>
+          <div class="layer-desc">LLM-as-judge systems may themselves hallucinate</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Explainability</div>
+          <div class="layer-desc">Large-scale neural architectures remain difficult to interpret</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1.2vh" data-anim>
+        <div class="layer-card">
+          <div class="layer-name">Dynamic Governance</div>
+          <div class="layer-desc">Regulatory frameworks continue to evolve internationally</div>
+        </div>
+        <div class="layer-card">
+          <div class="layer-name">Autonomous Emergence</div>
+          <div class="layer-desc">Agentic systems may exhibit unexpected multi-step behaviors</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Research challenges</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 28: The Core Insight -->
+<section class="slide hero dark" data-animate="quote">
+  <div class="chrome">
+    <div>Act VII · Conclusion</div>
+    <div>28 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The core insight</div>
+    <blockquote style="font-family:var(--serif-en); font-weight:700; font-size:4vw; line-height:1.15; max-width:68vw">
+      <span data-anim="line" style="display:block">The future of AI testing lies</span>
+      <span data-anim="line" style="display:block">not in preventing defects,</span>
+      <span data-anim="line" style="display:block">but in <em>continuously constraining uncertainty</em></span>
+      <span data-anim="line" style="display:block">within acceptable operational boundaries.</span>
+    </blockquote>
+  </div>
+  <div class="foot">
+    <div>The paradigm shift</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 29: Summary -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act VII · Conclusion</div>
+    <div>29 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Summary</div>
+    <h2 class="h-lg" style="margin-bottom:3.5vh" data-anim>HARMCS in one slide</h2>
+    <div class="grid-6" style="margin-top:2vh">
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">H</div>
+        <div class="dim-name">Hallucination</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">A</div>
+        <div class="dim-name">Autonomy</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">R</div>
+        <div class="dim-name">Recovery</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">M</div>
+        <div class="dim-name">Monetary</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">C</div>
+        <div class="dim-name">Confidentiality</div>
+      </div>
+      <div class="dim-card" data-anim>
+        <div class="dim-letter">S</div>
+        <div class="dim-name">Safety</div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:4vh; max-width:52vw; text-align:center; margin-inline:auto" data-anim>
+      Six dimensions. Quantitative scoring. Five testing layers. Continuous governance. The foundation of AI harness engineering.
+    </p>
+  </div>
+  <div class="foot">
+    <div>The framework</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- PAGE 30: Close -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Close</div>
+    <div>30 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Thank you</div>
+    <h1 class="h-hero" style="font-size:7vw" data-anim>HARMCS</h1>
+    <h2 class="h-sub" style="max-width:55vw" data-anim>Risk-Based Testing for AI Systems</h2>
+    <div class="meta-row" style="margin-top:3vh" data-anim>
+      <span>Harness Engineering</span><span>·</span><span>Reliability</span><span>·</span><span>Safety</span><span>·</span><span>Governance</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>The HARMCS Framework</div>
+    <div>— fin —</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*12.0-u_time*3.2)*exp(-md*2.5);p+=mr*0.05;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.07/i*sin(i*2.5*p.y+u_time*0.3)+0.03;
+    p.y+=0.07/i*cos(i*2.0*p.x+u_time*0.25)-0.03;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.06,0.06,0.07);
+  vec3 b=vec3(0.03,0.03,0.04);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.15,0.25);
+  vec3 col=palette(r*1.2+p0.x*0.4+u_time*0.07,a,b,c,d);
+  float disp=sin(r*20.0-u_time*1.2+ang*1.5)*0.5+0.5;
+  col+=vec3(disp*0.01,disp*0.012,disp*0.018);
+  float hi=pow(sin(p.x*3.5+p.y*2.5+u_time)*0.5+0.5,9.0);
+  col+=hi*0.05;
+  vec3 base=vec3(0.04,0.04,0.045);
+  col=mix(base,col,0.8);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<4;i++){v+=a*noise(p);p=m*p*2.0;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*4.0)*0.02;
+  vec2 q=vec2(fbm(p*1.6+u_time*0.05),fbm(p*1.6+vec2(4.8,1.2)+u_time*0.04));
+  vec2 r=vec2(fbm(p*1.8+q*1.2+vec2(1.5,8.5)+u_time*0.04),
+              fbm(p*1.8+q*1.2+vec2(7.5,2.5)+u_time*0.03));
+  float f=fbm(p*2.0+r*1.3);
+  vec3 cream=vec3(0.93,0.91,0.88);
+  vec3 paper=vec3(0.945,0.935,0.92);
+  vec3 col=mix(cream,paper,f);
+  float ph=r.x*2.0+u_time*0.28;
+  col+=vec3(0.02,0.015,0.01)*sin(ph)*0.4;
+  float hl=smoothstep(0.5,0.9,f);
+  col+=hl*0.03;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){
+  const t=(Date.now()-t0)/1000;
+  drawDark(t);drawLight(t);
+  requestAnimationFrame(loop);
+})();
+
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  if(window.__playSlide) setTimeout(()=>window.__playSlide(idx), 450);
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:1.8vh 1.2vw;max-width:94vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:4px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.1)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.5)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.1)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/6.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:4px 7px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper);opacity:.6';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){go(idx+1);return;}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){go(idx+(wheelAcc>0?1:-1));wheelAcc=0;}
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){go(idx+(dx<0?1:-1));}
+},{passive:true});
+
+go(0);
+</script>
+
+<script type="module">
+let motion;
+try {
+  motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+} catch(e) {
+  console.warn('[motion] CDN failed, disabling animations', e);
+  document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+}
+
+if(motion){
+  const { animate, stagger } = motion;
+  document.body.classList.add('motion-ready');
+  const EASE = [.22, 1, .36, 1];
+  const slides = [...document.querySelectorAll('.slide')];
+
+  function resetAnims(slide){
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='';
+      el.style.transform='';
+    });
+  }
+
+  function playSlide(i){
+    const slide = slides[i];
+    if(!slide) return;
+    const recipe = slide.dataset.animate || (slide.classList.contains('hero') ? 'hero' : 'cascade');
+
+    resetAnims(slide);
+    const all = [...slide.querySelectorAll('[data-anim]')];
+    if(!all.length) return;
+
+    if(recipe === 'directional'){
+      const lefts  = all.filter(el=>el.dataset.anim==='left');
+      const rights = all.filter(el=>el.dataset.anim==='right');
+      const others = all.filter(el=>!['left','right'].includes(el.dataset.anim));
+      if(others.length) animate(others, {opacity:[0,1], y:[10,0]}, {duration:.55, delay:stagger(.08, {start:.12}), easing:EASE});
+      if(lefts.length)  animate(lefts,  {opacity:[0,1], x:[-20,0]}, {duration:.7, delay:.35, easing:EASE});
+      if(rights.length) animate(rights, {opacity:[0,1], x:[20,0]},  {duration:.7, delay:.6, easing:EASE});
+      return;
+    }
+
+    if(recipe === 'quote'){
+      const lines = all.filter(el=>el.dataset.anim==='line');
+      const others = all.filter(el=>el.dataset.anim!=='line');
+      if(others.length) animate(others, {opacity:[0,1], y:[8,0]}, {duration:.55, delay:stagger(.1, {start:.18}), easing:EASE});
+      if(lines.length) animate(lines, {opacity:[.3,1], y:[10,0]}, {duration:.8, delay:stagger(.45, {start:.45}), easing:EASE});
+      return;
+    }
+
+    if(recipe === 'hero'){
+      animate(all, {opacity:[0,1], y:[14,0]}, {duration:.85, delay:stagger(.15, {start:.18}), easing:EASE});
+      return;
+    }
+
+    animate(all, {opacity:[0,1], y:[12,0]}, {duration:.65, delay:stagger(.08, {start:.1}), easing:EASE});
+  }
+
+  window.__playSlide = playSlide;
+  playSlide(0);
+}
+</script>
+</body>
+</html>

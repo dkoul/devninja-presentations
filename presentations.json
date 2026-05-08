@@ -12,5 +12,12 @@
     "description": "This presentation is a story and a playbook: how to explain AI's limits when someone tells you to \"just use AI for testing,\" and how to build a 'Human–AI–Human' workflow that helps embrace AI as a tool for what it is, boilerplate and tedious stuff.",
     "tags": ["AI", "Testing", "Workflow"],
     "date": "2026-05-07"
+  },
+  {
+    "slug": "harmcs",
+    "title": "Risk-Based Testing for AI Systems",
+    "description": "Harness engineering principles for building safe, reliable, and governed AI systems through risk-based testing approaches.",
+    "tags": ["Reliability", "Safety", "Governance"],
+    "date": "2026-05-08"
   }
 ]
