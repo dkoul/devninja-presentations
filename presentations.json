@@ -26,5 +26,12 @@
     "description": "Reimagining the Deming Cycle in AI",
     "tags": ["AI", "Methodology", "Process"],
     "date": "2026-05-08"
+  },
+  {
+    "slug": "next-gen-genai",
+    "title": "Empowering the Next Generation to Thrive in the GenAI Era",
+    "description": "Preparing and empowering the next generation for success in the age of Generative AI",
+    "tags": ["AI", "Education", "Future"],
+    "date": "2026-05-21"
   }
 ]
