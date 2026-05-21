@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empowering the Next Generation to Thrive in the GenAI Era · WeWork × Pune AI Collective 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Indigo Porcelain Theme */
+    --ink:#0a1f3d;
+    --ink-rgb:10,31,61;
+    --paper:#f1f3f5;
+    --paper-rgb:241,243,245;
+    --paper-tint:#e4e8ec;
+    --ink-tint:#152a4a;
+
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-en);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .frame.grid-2-7-5,.frame.grid-2-6-6,.frame.grid-2-8-4,.frame.grid-3-3,.frame.grid-6{display:grid}
+
+  .h-hero{font-family:var(--serif-en);font-weight:900;font-size:9vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-en);font-weight:700;font-size:5vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-en);font-weight:500;font-size:2.8vw;line-height:1.25;letter-spacing:0;opacity:.7}
+  .h-md{font-family:var(--serif-en);font-weight:600;font-size:2.3vw;line-height:1.3}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.3)}
+  .stat-card .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-card .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-card .stat-nb .stat-unit{font-family:var(--sans-zh);font-weight:500;font-size:.38em;letter-spacing:0;opacity:.72;margin-left:.14em}
+  .stat-card .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-en);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+
+  .body-text{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.15vw);line-height:1.75;opacity:.82}
+  .body-text strong{font-weight:700;opacity:1}
+  .body-text ul{margin-top:2vh;padding-left:1.4em;display:flex;flex-direction:column;gap:1.2vh}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.motion-ready [data-anim="left"]{transform:translateX(-24px)}
+  body.motion-ready [data-anim="right"]{transform:translateX(24px)}
+  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(10px)}
+
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+
+  @media (max-width:900px){
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:8vw}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → Navigate · ESC Index</div>
+
+<div id="deck">
+
+<!-- Slide 1: Hero Cover -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>WeWork × Pune AI Collective · 2026</div>
+    <div>@deepakkoul</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The GenAI Era</div>
+    <h1 class="h-hero" style="font-size:6.5vw" data-anim>Empowering the Next Generation to Thrive in the GenAI Era</h1>
+    <p class="lead" style="max-width:60vw" data-anim>
+      A 60-minute honest conversation about what's changing, what to learn, and how to thrive.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>Deepak Koul</span><span>·</span><span>Senior Manager, Software Engineering</span>
+    </div>
+    <div class="meta-row" data-anim>
+      <span>Abhishek Kumar</span><span>·</span><span>Senior Principal Software Engineer, Red Hat</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>AI · Skills · Career</div>
+    <div>— 2026 —</div>
+  </div>
+</section>
+
+<!-- Slide 2: The Uncomfortable Truth -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>The Hook</div>
+    <div>02 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The Reality</div>
+    <h1 class="h-hero" style="font-size:6vw; line-height:1.15" data-anim>
+      1.5 million engineers graduate in India every year.
+    </h1>
+    <p class="lead" style="max-width:55vw; font-size:2.2vw" data-anim>
+      AI is rewriting the rules for every single one.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Source: AICTE 2024</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 3: Our Story -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Introduction</div>
+    <div>03 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:8vh">
+    <div class="kicker" data-anim>Why We're Here</div>
+    <h2 class="h-xl" data-anim>Why We're Talking About This</h2>
+    <div class="body-text" style="margin-top:4vh; max-width:70vw">
+      <ul>
+        <li data-anim>Watched AI transform how our teams work — productivity multiplied</li>
+        <li data-anim>Saw both the hype AND the reality — the promises and the pitfalls</li>
+        <li data-anim>Hiring patterns shifting — what we look for has changed</li>
+        <li data-anim>Today: an honest conversation about what's actually changing</li>
+      </ul>
+    </div>
+    <div class="callout" style="margin-top:6vh; max-width:55vw" data-anim>
+      "We're learning too — not preaching, just sharing what we've observed."
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 03 · Introduction</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 4: What We'll Cover -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Agenda</div>
+    <div>04 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:8vh">
+    <div class="kicker" data-anim>Today's Journey</div>
+    <h2 class="h-xl" data-anim>What We'll Cover</h2>
+    <div class="body-text" style="margin-top:5vh; max-width:70vw; font-size:max(16px,1.3vw)">
+      <ul style="gap:2.5vh">
+        <li data-anim><strong>The Indian Context</strong> — What's really happening in our industry</li>
+        <li data-anim><strong>AI-Assisted Development</strong> — Live demos, real workflows</li>
+        <li data-anim><strong>Skills That Compound</strong> — What to learn, what to ignore</li>
+        <li data-anim><strong>The Pitfalls</strong> — Where AI fails spectacularly</li>
+        <li data-anim><strong>90-Day Roadmap</strong> — Your personal action plan</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 04 · Agenda</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 5: Chapter 1 Divider -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act I</div>
+    <div>05 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act I</div>
+    <h1 class="h-hero" style="font-size:8vw" data-anim>The Indian Context</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      What's really happening in our industry.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Chapter 1</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 6: The Old Playbook -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act I · Context</div>
+    <div>06 / 38</div>
+  </div>
+  <div class="frame grid-2-6-6" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>2010-2020</div>
+      <h2 class="h-xl" style="font-size:4vw" data-anim>The Old Playbook</h2>
+      <div class="body-text" style="margin-top:3vh">
+        <ul>
+          <li data-anim>Graduate from engineering college</li>
+          <li data-anim>Clear TCS/Infosys/Wipro interviews</li>
+          <li data-anim>Learn Java/SQL on the job</li>
+          <li data-anim>Move to "onsite" in 3-5 years</li>
+          <li data-anim>Become tech lead, then manager</li>
+        </ul>
+      </div>
+    </div>
+    <div style="padding:3vh 2vw; border-left:2px solid currentColor; opacity:.8" data-anim>
+      <h3 class="h-md" style="margin-bottom:2vh">This Model Built Careers for Millions</h3>
+      <div class="body-text">
+        <ul>
+          <li>India became the world's back office</li>
+          <li>IT services = ₹2.3 lakh crore industry</li>
+          <li>Predictable, stable, aspirational</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 06 · The Old Model</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 7: What Changed -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act I · Disruption</div>
+    <div>07 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:6vh">
+    <div class="kicker" data-anim>The Shift</div>
+    <h2 class="h-xl" data-anim>What Changed</h2>
+    <div class="grid-3" style="margin-top:5vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">AI Writes Faster</h3>
+        <p class="body-text">CRUD operations, API endpoints, unit tests — the "first 2 years" compressed to weeks.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Service Companies Restructuring</h3>
+        <p class="body-text">TCS: AI-assisted delivery. Infosys: "AI-first" mandate. Wipro: Reduced fresher batches.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">"Onsite" Means Less</h3>
+        <p class="body-text">AI assists remotely, reduces location dependency — but creates new opportunities too.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 07 · The Disruption</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 8: The Data — Hiring -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act I · Data</div>
+    <div>08 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>The Hard Numbers</div>
+    <h2 class="h-xl" data-anim>Hiring Reality</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Fresher Hiring Drop</div>
+        <div class="stat-nb">40<span class="stat-unit">%</span></div>
+        <div class="stat-note">Top IT services (2024 vs 2022)</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Seats Unfilled</div>
+        <div class="stat-nb">2.7<span class="stat-unit">L</span></div>
+        <div class="stat-note">Engineering seats in 2024</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Placement Struggle</div>
+        <div class="stat-nb">60<span class="stat-unit">%</span></div>
+        <div class="stat-note">Tier-2/3 college grads</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Time to First Job</div>
+        <div class="stat-nb">18<span class="stat-unit">mo</span></div>
+        <div class="stat-note">Average for 2024 batch</div>
+      </div>
+    </div>
+    <p class="body-text" style="margin-top:4vh; opacity:.6; font-size:max(12px,1vw)" data-anim>
+      Sources: NASSCOM Strategic Review 2025, AICTE placement data, TeamLease Employment Outlook Q1 2025
+    </p>
+  </div>
+  <div class="foot">
+    <div>Page 08 · Hiring Data</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 9: The Data — Opportunity -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act I · Opportunity</div>
+    <div>09 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>The Flip Side</div>
+    <h2 class="h-xl" data-anim>The Opportunity</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Productivity Boost</div>
+        <div class="stat-nb">3.2<span class="stat-unit">x</span></div>
+        <div class="stat-note">With AI assistants (GitHub data)</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">AI/ML Starting Salary</div>
+        <div class="stat-nb">₹18-25<span class="stat-unit">L</span></div>
+        <div class="stat-note">vs ₹4-6L traditional dev</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">AI/ML Jobs</div>
+        <div class="stat-nb">10K<span class="stat-unit">+</span></div>
+        <div class="stat-note">LinkedIn India (today)</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">India AI Market</div>
+        <div class="stat-nb">$50<span class="stat-unit">B</span></div>
+        <div class="stat-note">Projection by 2030</div>
+      </div>
+    </div>
+    <p class="body-text" style="margin-top:4vh; opacity:.6; font-size:max(12px,1vw)" data-anim>
+      Sources: GitHub Copilot Research 2024, LinkedIn India Salary Insights 2025, NASSCOM-BCG Report
+    </p>
+  </div>
+  <div class="foot">
+    <div>Page 09 · Opportunity Data</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 10: Bangalore Reality -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act I · Startups</div>
+    <div>10 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Indian Startups</div>
+    <h2 class="h-xl" data-anim>The Bangalore Reality</h2>
+    <div class="grid-4" style="margin-top:4vh; gap:3vw 4vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Zerodha</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">30 engineers running ₹50,000 Cr daily volume. No funding, ₹7,000 Cr profit FY24.</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.5; margin-top:1vh">Source: Nithin Kamath interviews</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Razorpay</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">350 engineers processing $80B annually. AI-assisted fraud detection, code review.</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.5; margin-top:1vh">Source: TechCrunch India 2024</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Meesho</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">ML models for 150M users. Recommendations, pricing, logistics — all ML-first.</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.5; margin-top:1vh">Source: YourStory 2024</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">CRED</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">AI for design system automation. Smaller team, premium output.</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.5; margin-top:1vh">Source: FounderThesis podcast</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:55vw" data-anim>
+      The pattern: 50 engineers doing what 500 did before. AI as "multiplier," not replacement.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 10 · Startup Reality</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 11: New Roles -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act I · Careers</div>
+    <div>11 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Emerging Careers</div>
+    <h2 class="h-xl" data-anim>Jobs That Didn't Exist 2 Years Ago</h2>
+    <div class="grid-4" style="margin-top:4vh; gap:3vw 4vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">AI/ML Ops Engineer</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">₹25-40L at Razorpay, Flipkart</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.6; margin-top:1vh">Skills: Kubernetes, MLflow, monitoring</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Prompt Engineer</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">₹30-50L at Anthropic, OpenAI India</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.6; margin-top:1vh">Skills: Few-shot, eval design, red teaming</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">AI Safety Specialist</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">DeepMind India, Flipkart AI Ethics</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.6; margin-top:1vh">Skills: Bias detection, interpretability</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Evaluation Engineer</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">Ola Krutrim, Sarvam AI</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.6; margin-top:1vh">Skills: Benchmarking, human eval, statistics</p>
+      </div>
+    </div>
+    <p class="body-text" style="margin-top:4vh; opacity:.5; font-size:max(11px,.9vw)" data-anim>
+      Sources: LinkedIn job postings 2025, levels.fyi, Inc42, company careers pages
+    </p>
+  </div>
+  <div class="foot">
+    <div>Page 11 · New Roles</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 12: Chapter 2 Divider -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act II</div>
+    <div>12 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act II</div>
+    <h1 class="h-hero" style="font-size:7vw" data-anim>AI-Assisted Development</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      Live demos, real workflows.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Chapter 2</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 13: The Mindset Shift -->
+<section class="slide hero dark" data-animate="quote">
+  <div class="chrome">
+    <div>Core Thesis</div>
+    <div>13 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The Thesis</div>
+    <blockquote style="font-family:var(--serif-en); font-weight:700; font-size:5.5vw; line-height:1.15; max-width:80vw">
+      <span data-anim="line" style="display:block">"AI won't replace you.</span>
+      <span data-anim="line" style="display:block">A developer using AI will."</span>
+    </blockquote>
+  </div>
+  <div class="foot">
+    <div>Page 13</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 14: Tools Landscape -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act II · Tools</div>
+    <div>14 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Your Toolkit</div>
+    <h2 class="h-xl" data-anim>AI Coding Tools — 2026</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:2vh">IDEs & Editors</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li><strong>Cursor</strong> — AI-native, best for new projects</li>
+            <li><strong>GitHub Copilot</strong> — Integrated everywhere</li>
+            <li><strong>Windsurf</strong> — Alternative to Cursor</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:2vh">CLI & Agents</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li><strong>Claude Code</strong> — Terminal-first, complex refactoring</li>
+            <li><strong>Aider</strong> — Open source, multi-file</li>
+            <li><strong>GPT Engineer</strong> — Scaffolding projects</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:2vh">Specialized</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li><strong>v0.dev</strong> — UI/React generation</li>
+            <li><strong>Perplexity</strong> — Research and docs</li>
+            <li><strong>Phind</strong> — Technical search</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:50vw" data-anim>
+      You don't need all of them — pick 2-3. Free tiers available for most.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 14 · Tools</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 15: Live Demo -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act II · Demo</div>
+    <div>15 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:8vh">
+    <div class="kicker" data-anim>Live Demo</div>
+    <h2 class="h-xl" data-anim>AI Writes a REST API</h2>
+    <div class="body-text" style="margin-top:4vh; max-width:60vw">
+      <p data-anim style="margin-bottom:3vh"><strong>Task:</strong> Create a FastAPI endpoint for user management</p>
+      <p data-anim style="margin-bottom:2vh">Watch AI:</p>
+      <ul style="margin-left:0">
+        <li data-anim>Generate the boilerplate — 200 lines in 30 seconds</li>
+        <li data-anim>Add Pydantic validation</li>
+        <li data-anim>Write error handling</li>
+        <li data-anim>Create pytest tests with edge cases</li>
+      </ul>
+    </div>
+    <div class="callout" style="margin-top:5vh; max-width:50vw" data-anim>
+      Key insight: Speed is impressive, but reviewing the output is where you add value.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 15 · Demo 1</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 16: Where AI Excels -->
+<section class="slide light" data-animate="directional">
+  <div class="chrome">
+    <div>Act II · Capabilities</div>
+    <div>16 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Strengths</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>Where AI Crushes It</h2>
+    <div class="grid-2-6-6" style="gap:4vw">
+      <div data-anim="left">
+        <div class="body-text">
+          <ul style="gap:2vh">
+            <li><strong>Boilerplate</strong> — "Create FastAPI CRUD" → 200 lines in 30s</li>
+            <li><strong>Tests</strong> — "Write pytest with edge cases" → 80% coverage</li>
+            <li><strong>Regex</strong> — "Match Indian phone numbers" → Saves 30 min</li>
+            <li><strong>SQL</strong> — "Convert to window function" → Correct 90%</li>
+            <li><strong>Docs</strong> — "Generate docstrings" → Hours in minutes</li>
+          </ul>
+        </div>
+      </div>
+      <div data-anim="right" style="padding:3vh 2vw; border-left:2px solid currentColor">
+        <h3 class="h-md" style="margin-bottom:2vh">The Pattern</h3>
+        <div class="body-text">
+          <ul style="gap:1.5vh">
+            <li>Repetitive, well-documented tasks</li>
+            <li>Clear inputs/outputs</li>
+            <li>Syntax-heavy, pattern-matching</li>
+            <li>Things freshers spent years on</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 16 · AI Strengths</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 17: Where AI Fails -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act II · Failures</div>
+    <div>17 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Demo: Failures</div>
+    <h2 class="h-xl" data-anim>Where AI Fails Spectacularly</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">The Hallucination</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">Ask: "What is <code>leftpad</code> in Python stdlib?" AI confidently describes a function that doesn't exist.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">The Logic Fail</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">"5 apples, eat 2, buy 3, friend gives half of 6." AI often gets this wrong (answer: 9).</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">The Security Hole</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">Ask for SQL builder → AI returns string concatenation. Classic SQL injection that compiles.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:5vh; max-width:55vw" data-anim>
+      These demos reliably fail — they build credibility and set up "skills that matter."
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 17 · AI Failures</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 18: Still Needs Humans -->
+<section class="slide light" data-animate="directional">
+  <div class="chrome">
+    <div>Act II · Human Value</div>
+    <div>18 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Human Territory</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>AI Cannot Do These (Yet)</h2>
+    <div class="grid-2-6-6" style="gap:4vw">
+      <div data-anim="left">
+        <div class="body-text">
+          <ul style="gap:1.8vh">
+            <li>System design decisions</li>
+            <li>Understanding business context</li>
+            <li>Debugging novel/complex issues</li>
+            <li>Security review</li>
+            <li>Performance optimization at scale</li>
+            <li>Knowing WHAT to build</li>
+            <li>Stakeholder communication</li>
+            <li>Production incident response</li>
+          </ul>
+        </div>
+      </div>
+      <div data-anim="right" style="padding:3vh 2vw; border-left:2px solid currentColor">
+        <h3 class="h-md" style="margin-bottom:2vh">The Pattern</h3>
+        <div class="body-text">
+          <ul style="gap:1.5vh">
+            <li>Judgment under uncertainty</li>
+            <li>Context from outside the code</li>
+            <li>Novel problems</li>
+            <li>Human coordination</li>
+          </ul>
+        </div>
+        <p class="body-text" style="margin-top:3vh; font-style:italic; opacity:.8">This is where your career lives.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 18 · Human Value</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 19: Chapter 3 Divider -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act III</div>
+    <div>19 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act III</div>
+    <h1 class="h-hero" style="font-size:6.5vw" data-anim>Skills That Compound</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      What to learn, what to ignore.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Chapter 3</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 20: Skill 1 - System Design -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act III · Skills</div>
+    <div>20 / 38</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Skill 1</div>
+      <h2 class="h-xl" style="font-size:4.5vw" data-anim>System Design > Syntax</h2>
+      <div class="body-text" style="margin-top:3vh">
+        <p data-anim style="margin-bottom:2vh"><strong>AI can write code. It cannot:</strong></p>
+        <ul>
+          <li data-anim>Decide microservices vs monolith</li>
+          <li data-anim>Choose Postgres vs MongoDB vs DynamoDB</li>
+          <li data-anim>Design for 10M users vs 10K users</li>
+          <li data-anim>Make build-vs-buy decisions</li>
+          <li data-anim>Navigate organizational constraints</li>
+        </ul>
+      </div>
+    </div>
+    <div style="padding:3vh 2vw; border-left:2px solid currentColor" data-anim>
+      <h3 class="h-md" style="margin-bottom:2vh">Why This Compounds</h3>
+      <div class="body-text" style="font-size:max(13px,1vw)">
+        <ul style="gap:1.5vh">
+          <li>AI generates code faster → More architectural decisions needed</li>
+          <li>Senior engineers become "AI orchestra conductors"</li>
+          <li>Every project needs someone who sees the whole system</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 20 · System Design</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 21: System Design - Indian Context -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act III · Skills</div>
+    <div>21 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Indian Context</div>
+    <h2 class="h-xl" data-anim>Why System Design Matters Here</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">FAANG/MAANG Interviews</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">2-3 rounds are pure system design. Can't fake it with AI in a live interview.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Service Companies</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">"Solution Architect" > "Senior Developer" pay. Client-facing roles need this skill.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Startups</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">Small teams = everyone does architecture. Wrong design = costly rewrites.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:5vh; max-width:60vw" data-anim>
+      <strong>Resources:</strong> Gaurav Sen (YouTube, free), "Designing Data-Intensive Applications" — the bible.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 21 · Indian Context</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 22: Skill 2 - Evaluation -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act III · Skills</div>
+    <div>22 / 38</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Skill 2</div>
+      <h2 class="h-xl" style="font-size:4vw" data-anim>If AI Writes Code, Who Checks It?</h2>
+      <div class="body-text" style="margin-top:3vh">
+        <p data-anim style="margin-bottom:2vh"><strong>The Problem:</strong></p>
+        <ul>
+          <li data-anim>AI code looks correct, compiles, runs</li>
+          <li data-anim>But hallucinations hide in edge cases</li>
+          <li data-anim>Security vulnerabilities slip through</li>
+          <li data-anim>Performance can be terrible at scale</li>
+        </ul>
+      </div>
+    </div>
+    <div style="padding:3vh 2vw; border-left:2px solid currentColor" data-anim>
+      <h3 class="h-md" style="margin-bottom:2vh">The Opportunity</h3>
+      <div class="body-text" style="font-size:max(13px,1vw)">
+        <ul style="gap:1.5vh">
+          <li>AI Evaluation Engineer — testing AI outputs</li>
+          <li>Building eval frameworks</li>
+          <li>Red teaming LLMs</li>
+          <li>The "last mile" of AI-assisted development</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 22 · Evaluation</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 23: Evaluation Tools -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act III · Skills</div>
+    <div>23 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Your Evaluation Toolkit</div>
+    <h2 class="h-xl" data-anim>Testing AI Output</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Traditional Testing</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>pytest, Jest — Still essential</li>
+            <li>Hypothesis — Property-based</li>
+            <li>Mutation testing</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">AI-Specific</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Promptfoo — LLM evaluation</li>
+            <li>LangSmith — Tracing/debugging</li>
+            <li>Ragas — RAG evaluation</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Security</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Semgrep — Static analysis</li>
+            <li>Snyk — Dependency scanning</li>
+            <li>OWASP ZAP — Security testing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:50vw" data-anim>
+      Pick one from each category. Build a "trust but verify" workflow.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 23 · Eval Tools</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 24: Skill 3 - Collaboration -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act III · Skills</div>
+    <div>24 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Skill 3</div>
+    <h2 class="h-xl" data-anim>The "AI Sandwich" Technique</h2>
+    <div class="body-text" style="margin-top:4vh; max-width:65vw; font-size:max(15px,1.25vw)">
+      <ol style="list-style-type:decimal; padding-left:1.5em; display:flex; flex-direction:column; gap:2vh">
+        <li data-anim><strong>Human:</strong> Define the problem precisely — context, constraints, examples</li>
+        <li data-anim><strong>AI:</strong> Generate draft solution</li>
+        <li data-anim><strong>Human:</strong> Evaluate, critique, refine prompt</li>
+        <li data-anim><strong>AI:</strong> Iterate based on feedback</li>
+        <li data-anim><strong>Human:</strong> Final review, integration, deployment</li>
+      </ol>
+    </div>
+    <div class="callout" style="margin-top:5vh; max-width:55vw" data-anim>
+      Bad prompts = bad output. Good prompts = 10x. Great prompts = AI does 80% correctly.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 24 · Collaboration</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 25: Prompting Patterns -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act III · Skills</div>
+    <div>25 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Prompt Engineering</div>
+    <h2 class="h-xl" data-anim>Patterns That Work</h2>
+    <div class="grid-4" style="margin-top:4vh; gap:3vw 4vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Chain of Thought</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">"Think step by step before answering" — better for complex reasoning.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Few-Shot Examples</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">Show 2-3 examples of desired output. AI matches the pattern.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Role Assignment</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">"You are a senior Python developer..." — sets context and constraints.</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Structured Output</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">"Return JSON with these fields..." — predictable, parseable responses.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:50vw" data-anim>
+      These patterns have papers behind them. Not magic, just technique.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 25 · Prompting</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 26: Chapter 4 Divider -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act IV</div>
+    <div>26 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act IV</div>
+    <h1 class="h-hero" style="font-size:8vw" data-anim>The Pitfalls</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      Where AI fails spectacularly.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Chapter 4</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 27: Pitfall 1 -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act IV · Pitfalls</div>
+    <div>27 / 38</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Pitfall 1</div>
+      <h2 class="h-xl" style="font-size:4.5vw" data-anim>The Dependency Trap</h2>
+      <div class="body-text" style="margin-top:3vh">
+        <p data-anim style="margin-bottom:2vh"><strong>The Risk:</strong></p>
+        <ul>
+          <li data-anim>Accept AI output without understanding</li>
+          <li data-anim>Cargo-cult programming at scale</li>
+          <li data-anim>Can't debug when things break</li>
+          <li data-anim>Interview failures — can't code without AI</li>
+        </ul>
+      </div>
+    </div>
+    <div style="padding:3vh 2vw; border-left:2px solid currentColor" data-anim>
+      <h3 class="h-md" style="margin-bottom:2vh">The Antidote</h3>
+      <div class="body-text" style="font-size:max(13px,1vw)">
+        <ul style="gap:1.5vh">
+          <li>Always understand what the code does</li>
+          <li>Explain it back in your own words</li>
+          <li>Practice coding without AI regularly</li>
+          <li>"AI as bike, not wheelchair"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 27 · Overreliance</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 28: Pitfall 2 -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act IV · Pitfalls</div>
+    <div>28 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Pitfall 2</div>
+    <h2 class="h-xl" data-anim>Confident and Wrong</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Lawyer Case (2023)</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">Attorneys cited fake cases from ChatGPT, sanctioned by judge.</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.5; margin-top:1vh">Source: NY Times</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Made-Up Packages</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">AI suggests <code>pip install x</code> — package doesn't exist, attacker registers it with malware.</p>
+        <p class="body-text" style="font-size:max(11px,.9vw); opacity:.5; margin-top:1vh">Source: Lasso Security 2024</p>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">AWS Hallucination</h3>
+        <p class="body-text" style="font-size:max(13px,1vw)">AI recommends <code>boto3.client('s3').upload_optimized()</code> — method doesn't exist.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:60vw" data-anim>
+      <strong>Rule:</strong> If AI suggests a library/method you haven't heard of — verify it exists first.
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 28 · Hallucinations</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 29: Pitfall 3 -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act IV · Pitfalls</div>
+    <div>29 / 38</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Pitfall 3</div>
+      <h2 class="h-xl" style="font-size:4vw" data-anim>"AI Will Figure It Out"</h2>
+      <div class="body-text" style="margin-top:3vh">
+        <p data-anim style="margin-bottom:2vh"><strong>Things You Still Need to Know:</strong></p>
+        <ul>
+          <li data-anim>Data structures and algorithms (interview reality)</li>
+          <li data-anim>Git, Linux, networking basics</li>
+          <li data-anim>Database fundamentals</li>
+          <li data-anim>How the internet works</li>
+          <li data-anim>Debugging without AI</li>
+        </ul>
+      </div>
+    </div>
+    <div style="padding:3vh 2vw; border-left:2px solid currentColor" data-anim>
+      <h3 class="h-md" style="margin-bottom:2vh">Why</h3>
+      <div class="body-text" style="font-size:max(13px,1vw)">
+        <ul style="gap:1.5vh">
+          <li>AI explanations require baseline knowledge</li>
+          <li>Interviews still test fundamentals</li>
+          <li>Production debugging is often offline</li>
+          <li>"Prompt better" requires knowing what to ask</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 29 · Fundamentals</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 30: Pitfall 4 - Big Quote -->
+<section class="slide hero dark" data-animate="quote">
+  <div class="chrome">
+    <div>Pitfall 4</div>
+    <div>30 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The Meta-Problem</div>
+    <blockquote style="font-family:var(--serif-en); font-weight:700; font-size:5vw; line-height:1.15; max-width:80vw">
+      <span data-anim="line" style="display:block">"AI makes it easy to build</span>
+      <span data-anim="line" style="display:block">the wrong thing faster."</span>
+    </blockquote>
+    <p class="lead" style="max-width:50vw; opacity:.65" data-anim>
+      Building fast ≠ building right. Human judgment for WHAT to build.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Page 30</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 31: Chapter 5 Divider -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act V</div>
+    <div>31 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act V</div>
+    <h1 class="h-hero" style="font-size:7vw" data-anim>Your 90-Day Roadmap</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      Your personal action plan.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Chapter 5</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 32: Days 1-30 -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act V · Roadmap</div>
+    <div>32 / 38</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Month 1</div>
+      <h2 class="h-xl" style="font-size:4.5vw" data-anim>Days 1-30: Build the Habit</h2>
+      <div class="body-text" style="margin-top:3vh">
+        <p data-anim style="margin-bottom:2vh"><strong>Week 1-2: Tools</strong></p>
+        <ul>
+          <li data-anim>Install Cursor or GitHub Copilot</li>
+          <li data-anim>Use AI for EVERY coding task</li>
+          <li data-anim>Keep a "prompt journal"</li>
+        </ul>
+        <p data-anim style="margin-top:3vh; margin-bottom:2vh"><strong>Week 3-4: Learning</strong></p>
+        <ul>
+          <li data-anim>"Prompt Engineering for Developers" (DeepLearning.AI, free)</li>
+          <li data-anim>Build one project with AI assistance</li>
+          <li data-anim>Post about it publicly</li>
+        </ul>
+      </div>
+    </div>
+    <div style="padding:3vh 2vw; border-left:2px solid currentColor" data-anim>
+      <h3 class="h-md" style="margin-bottom:2vh">Deliverable</h3>
+      <p class="lead" style="font-size:1.6vw">One AI-assisted project on GitHub</p>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 32 · Month 1</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 33: Days 31-60 -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act V · Roadmap</div>
+    <div>33 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Month 2</div>
+    <h2 class="h-xl" data-anim>Days 31-60: Go Deeper</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">System Design</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Gaurav Sen playlist (YouTube, free)</li>
+            <li>"Designing Data-Intensive Apps" Ch 1-5</li>
+            <li>Exponent course (optional)</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">AI/ML Fundamentals</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Fast.ai "Practical Deep Learning" (free)</li>
+            <li>Build a simple RAG application</li>
+            <li>Deploy it (Hugging Face, Railway)</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Evaluation</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Add tests to Month 1 project</li>
+            <li>Try Promptfoo for LLM eval</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:50vw" data-anim>
+      <strong>Deliverable:</strong> System design doc + working RAG app
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 33 · Month 2</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 34: Days 61-90 -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Act V · Roadmap</div>
+    <div>34 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Month 3</div>
+    <h2 class="h-xl" data-anim>Days 61-90: Show Your Work</h2>
+    <div class="grid-3" style="margin-top:4vh; gap:3vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Build in Public</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>One substantial project (open source)</li>
+            <li>Blog post: "How I built X with AI"</li>
+            <li>LinkedIn posts documenting learnings</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Target Your Path</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>AI/ML Engineer — deeper ML</li>
+            <li>Full-stack + AI — user-facing features</li>
+            <li>Platform/MLOps — deployment, monitoring</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Interview Prep</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Practice with AI AND without</li>
+            <li>Explain your AI workflow</li>
+            <li>Know the limitations</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:50vw" data-anim>
+      <strong>Deliverable:</strong> Public portfolio + 3 applications sent
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 34 · Month 3</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 35: Cheat Sheet -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act V · Action</div>
+    <div>35 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Action Items</div>
+    <h2 class="h-xl" data-anim>Your Cheat Sheet</h2>
+    <div class="grid-4" style="margin-top:4vh; gap:3vw 4vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Today</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Install Cursor (cursor.sh)</li>
+            <li>Sign up for DeepLearning.AI</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">This Week</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Use AI for one real task</li>
+            <li>Start the prompt journal</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">This Month</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Complete one AI project</li>
+            <li>Post about it publicly</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">This Quarter</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Full 90-day roadmap</li>
+            <li>One interview or application</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:4vh; max-width:50vw" data-anim>
+      "Start before you're ready."
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 35 · Action Items</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 36: Resources -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Resources</div>
+    <div>36 / 38</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Start Here</div>
+    <h2 class="h-xl" data-anim>Resources</h2>
+    <div class="grid-4" style="margin-top:4vh; gap:3vw 4vw">
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Courses (Free)</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>DeepLearning.AI — Prompt Engineering</li>
+            <li>Fast.ai — Practical Deep Learning</li>
+            <li>Gaurav Sen — System Design (YT)</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Tools</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>Cursor (cursor.sh) — Free tier</li>
+            <li>Claude Code — CLI tool</li>
+            <li>Copilot — Free for students</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Books</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>"Designing Data-Intensive Apps"</li>
+            <li>"AI Engineering" — Chip Huyen</li>
+          </ul>
+        </div>
+      </div>
+      <div style="border-top:1px solid currentColor; padding-top:2vh" data-anim>
+        <h3 class="h-md" style="margin-bottom:1.5vh">Communities</h3>
+        <div class="body-text" style="font-size:max(13px,1vw)">
+          <ul style="gap:1vh">
+            <li>MLOps Community Slack</li>
+            <li>r/LocalLLaMA, r/MachineLearning</li>
+            <li>Pune AI Collective</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 36 · Resources</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 37: The Opportunity -->
+<section class="slide hero dark" data-animate="quote">
+  <div class="chrome">
+    <div>The Close</div>
+    <div>37 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The Opportunity</div>
+    <blockquote style="font-family:var(--serif-en); font-weight:700; font-size:4.5vw; line-height:1.2; max-width:80vw">
+      <span data-anim="line" style="display:block">"India has the talent.</span>
+      <span data-anim="line" style="display:block">GenAI is the leverage.</span>
+      <span data-anim="line" style="display:block">The next Infosys will be</span>
+      <span data-anim="line" style="display:block">50 engineers, not 50,000."</span>
+    </blockquote>
+  </div>
+  <div class="foot">
+    <div>Page 37</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- Slide 38: Thank You -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>WeWork × Pune AI Collective 2026</div>
+    <div>38 / 38</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <h1 class="h-hero" style="font-size:10vw" data-anim>Thank You!</h1>
+    <h2 class="h-sub" style="font-size:3vw" data-anim>Questions?</h2>
+    <div class="meta-row" style="margin-top:4vh" data-anim>
+      <span>Deepak Koul · @deepakkoul</span>
+    </div>
+    <div class="meta-row" data-anim>
+      <span>Abhishek Kumar · Red Hat</span>
+    </div>
+    <p class="lead" style="font-size:1.4vw; opacity:.6; margin-top:2vh" data-anim>Let's connect on LinkedIn</p>
+  </div>
+  <div class="foot">
+    <div>Empowering the Next Generation</div>
+    <div>— 2026 —</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.06,0.08,0.16);
+  vec3 b=vec3(0.04,0.05,0.08);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.2,0.3,0.5);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.015,disp*0.03);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.06;
+  vec3 base=vec3(0.04,0.08,0.15);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.88,0.90,0.93);
+  vec3 paper=vec3(0.945,0.955,0.965);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.55,0.62,0.85)*sin(ph)*0.04;
+  col+=vec3(0.45,0.55,0.75)*sin(ph*0.8+2.0)*0.035;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.05;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){
+  const t=(Date.now()-t0)/1000;
+  drawDark(t);drawLight(t);
+  requestAnimationFrame(loop);
+})();
+
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  if(window.__playSlide) setTimeout(()=>window.__playSlide(idx), 450);
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){go(idx+1);return;}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){go(idx+(wheelAcc>0?1:-1));wheelAcc=0;}
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1));
+},{passive:true});
+
+go(0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<script type="module">
+let motion;
+try {
+  motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+} catch(e) {
+  console.warn('[motion] CDN failed, disabling animations', e);
+  document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+}
+
+if(motion){
+  const { animate, stagger } = motion;
+  document.body.classList.add('motion-ready');
+  const EASE = [.22, 1, .36, 1];
+  const slides = [...document.querySelectorAll('.slide')];
+  let lastIdx = -1;
+
+  function resetAnims(slide){
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='';
+      el.style.transform='';
+    });
+  }
+
+  function playSlide(i){
+    const slide = slides[i];
+    if(!slide) return;
+    lastIdx = i;
+    const recipe = slide.dataset.animate || (slide.classList.contains('hero') ? 'hero' : 'cascade');
+
+    resetAnims(slide);
+    const all = [...slide.querySelectorAll('[data-anim]')];
+    if(!all.length) return;
+
+    if(recipe === 'directional'){
+      const lefts  = all.filter(el=>el.dataset.anim==='left');
+      const rights = all.filter(el=>el.dataset.anim==='right');
+      const others = all.filter(el=>!['left','right','divider'].includes(el.dataset.anim));
+      if(others.length) animate(others, {opacity:[0,1], y:[12,0]}, {duration:.6, delay:stagger(.1, {start:.15}), easing:EASE});
+      if(lefts.length)  animate(lefts,  {opacity:[0,1], x:[-24,0]}, {duration:.8, delay:.35, easing:EASE});
+      if(rights.length) animate(rights, {opacity:[0,1], x:[24,0]},  {duration:.8, delay:1.0, easing:EASE});
+      return;
+    }
+
+    if(recipe === 'quote'){
+      const lines = all.filter(el=>el.dataset.anim==='line');
+      const others = all.filter(el=>el.dataset.anim!=='line');
+      if(others.length) animate(others, {opacity:[0,1], y:[8,0]},    {duration:.6, delay:stagger(.12, {start:.2}), easing:EASE});
+      if(lines.length)  animate(lines,  {opacity:[.35,1], y:[10,0]}, {duration:.8, delay:stagger(.55, {start:.5}), easing:EASE});
+      return;
+    }
+
+    if(recipe === 'hero'){
+      animate(all, {opacity:[0,1], y:[14,0]}, {duration:.9, delay:stagger(.16, {start:.2}), easing:EASE});
+      return;
+    }
+
+    animate(all, {opacity:[0,1], y:[16,0]}, {duration:.75, delay:stagger(.1, {start:.15}), easing:EASE});
+  }
+
+  window.__playSlide = playSlide;
+  playSlide(0);
+}
+</script>
+</body>
+</html>
