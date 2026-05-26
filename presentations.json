@@ -33,5 +33,12 @@
     "description": "Preparing and empowering the next generation for success in the age of Generative AI",
     "tags": ["AI", "Education", "Future"],
     "date": "2026-05-21"
+  },
+  {
+    "slug": "building-production-ready-mcp-servers",
+    "title": "Building Production-Ready MCP Servers: Lessons from an Open Source Template",
+    "description": "A 60-minute workshop walking through how we built a production-grade, open source MCP server template at Red Hat, covering FastMCP + FastAPI integration, multiple transport protocols, OAuth, structured logging, and OpenShift deployment.",
+    "tags": ["MCP", "AI", "Open Source", "Kubernetes", "Workshop"],
+    "date": "2026-05-26"
   }
 ]

@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building Production-Ready MCP Servers · MCP Dev Summit Mumbai 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Red+Hat+Text:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&family=Red+Hat+Mono:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ Red Hat Theme Colors ============
+       Primary: Red Hat Red (#EE0000) for accents
+       Dark mode: Near black with subtle warmth
+       Light mode: Clean white with minimal warmth
+    */
+    --ink:#151515;
+    --ink-rgb:21,21,21;
+    --paper:#ffffff;
+    --paper-rgb:255,255,255;
+    --paper-tint:#f5f5f5;
+    --ink-tint:#1f1f1f;
+
+    /* Red Hat brand colors */
+    --rh-red:#ee0000;
+    --rh-red-rgb:238,0,0;
+    --rh-red-dark:#a30000;
+    --rh-red-light:#ff442b;
+    --rh-blue:#0066cc;
+    --rh-cyan:#009596;
+    --rh-purple:#5e40be;
+    --rh-gold:#f0ab00;
+    --rh-orange:#ec7a08;
+    --rh-green:#3e8635;
+
+    /* PatternFly-inspired semantic colors */
+    --pf-success:#3e8635;
+    --pf-warning:#f0ab00;
+    --pf-danger:#c9190b;
+    --pf-info:#2b9af3;
+
+    /* ============ Red Hat Fonts ============ */
+    --display:"Red Hat Display",sans-serif;
+    --text:"Red Hat Text",sans-serif;
+    --mono:"Red Hat Mono",ui-monospace,monospace;
+    --sans-cjk:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL Dual Background ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+
+  /* ============ Deck Container + Page Navigation ============ */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+
+  /* Default page: mask ensures text readability */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.82);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.82);backdrop-filter:blur(3px)}
+  /* Hero page: mask reduced, lets WebGL background show through */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.18);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.14);backdrop-filter:none}
+  /* Hero page top/bottom subtle fade */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Chrome: top meta + bottom foot ============ */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.08em;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.06em;opacity:.55}
+  .foot .title{font-family:var(--display);font-weight:500;letter-spacing:.02em;opacity:.75;font-size:13px}
+
+  /* Red Hat tag (sentence case, no uppercase transforms) */
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ Red Hat Typography ============
+     Per brand guidelines:
+     · Red Hat Display: headlines, large text
+     · Red Hat Text: body copy, descriptions
+     · Red Hat Mono: code, metadata, technical
+     · Never use all caps - sentence case only
+     · Bold or color for emphasis, never italics
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.12em;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--display);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.02em}
+  .display-rh{font-family:var(--display);font-weight:700;font-size:8vw;line-height:1.04;letter-spacing:-.01em}
+  .h1{font-family:var(--display);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.01em}
+  .h2{font-family:var(--display);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3{font-family:var(--display);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body{font-family:var(--text);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-display{font-family:var(--display);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--text);font-weight:400;font-size:1.9vw;line-height:1.5;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.1em;opacity:.6}
+  .big-num{font-family:var(--display);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--display);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--display);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+
+  /* Red Hat accent color for headlines (per brand: red only for large text) */
+  .accent{color:var(--rh-red)}
+  .slide.dark .accent{color:var(--rh-red-light)}
+
+  /* Code blocks */
+  code,.code{font-family:var(--mono);font-size:.9em;background:rgba(127,127,127,.12);padding:.15em .4em;border-radius:3px}
+  pre{font-family:var(--mono);font-size:max(13px,1vw);line-height:1.6;background:rgba(127,127,127,.08);padding:2vh 2vw;border-radius:4px;overflow-x:auto}
+
+  /* ============ Layout Utilities ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat (Number Matrix) ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--display);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--text);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.12em;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout (Quote Box) ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid var(--rh-red);position:relative;font-family:var(--text);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.04)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.05)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.1em;opacity:.6}
+  .callout .q-big{font-family:var(--display);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ PatternFly-inspired Card ============ */
+  .pf-card{display:flex;flex-direction:column;padding:2.4vh 2vw;border-radius:4px;position:relative}
+  .slide.light .pf-card{background:var(--paper);box-shadow:0 1px 2px rgba(0,0,0,.06),0 2px 4px rgba(0,0,0,.06)}
+  .slide.dark .pf-card{background:rgba(var(--paper-rgb),.05);border:1px solid rgba(var(--paper-rgb),.1)}
+  .pf-card .card-title{font-family:var(--display);font-weight:600;font-size:1.4vw;margin-bottom:1vh}
+  .pf-card .card-body{font-family:var(--text);font-size:max(14px,1vw);line-height:1.6;opacity:.85}
+
+  /* ============ Platform (Platform Card) ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--display);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--display);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--text);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline (Table Row) ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--display);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--text);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.1em;opacity:.6;justify-self:end}
+
+  /* ============ Pillar (Pillar Card) ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--display);font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--display);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--text);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Red Hat Logo Mark ============ */
+  .rh-logo{width:40px;height:auto;opacity:.9}
+  .rh-hat{fill:var(--rh-red)}
+  .slide.dark .rh-hat{fill:var(--rh-red-light)}
+
+  /* ============ Highlight ============ */
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--rh-red-rgb),.25);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--rh-red-rgb),.15);z-index:-1}
+
+  /* ============ Icons (Lucide via CDN) ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ Image Frame ============ */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.fit-contain > img{object-fit:contain;object-position:center center}
+  .frame-img.r-16x9{aspect-ratio:16/9;max-height:64vh}
+  .frame-img.r-16x10{aspect-ratio:16/10;max-height:56vh}
+  .frame-img.r-4x3{aspect-ratio:4/3;max-height:56vh}
+  .frame-img.r-3x2{aspect-ratio:3/2;max-height:46vh}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .frame-img.r-1x1{aspect-ratio:1/1;max-height:50vh}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.1em;opacity:.72}
+  .frame-cap .pf{font-family:var(--display);font-weight:600;font-size:max(13px,1vw);letter-spacing:.02em;opacity:.94}
+  .frame-cap .nb{font-family:var(--display);font-size:max(15px,1.2vw);letter-spacing:.02em;opacity:.88}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ Navigation ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:var(--rh-red);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:var(--rh-red)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.1em;opacity:.4;mix-blend-mode:difference;color:#aaa}
+
+  /* ============ LAYOUTS API ============ */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* Heading hierarchy */
+  .h-hero{
+    font-family:var(--display);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+
+  /* lead intro text */
+  .lead{
+    font-family:var(--text);
+    font-weight:400;
+    font-size:1.75vw;
+    line-height:1.5;
+    opacity:.86;
+  }
+
+  /* meta-row bottom metadata */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.08em;
+    opacity:.6;
+  }
+
+  /* stat-card (for Big Numbers Grid) */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.12em;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--text);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  .grid-4 .stat-card .stat-nb{font-size:5vw}
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* pipeline (workflow) */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.12em;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:2px solid var(--rh-red);
+  }
+  .step-nb{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--text);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--text);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  /* Grids */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+
+  /* Image frame-img */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{
+    display:block;
+    margin-top:.8vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.1em;
+    opacity:.6;
+  }
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.1em;
+    opacity:.6;
+  }
+
+  /* chrome & foot */
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.08em;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.06em;opacity:.5}
+
+  /* ============ Animation System ============ */
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.motion-ready [data-anim="left"]{transform:translateX(-24px)}
+  body.motion-ready [data-anim="right"]{transform:translateX(24px)}
+  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(10px)}
+  body.motion-ready [data-animate="pipeline"] [data-anim]{opacity:.15}
+
+  /* Responsive Fallback */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-rh{font-size:12vw}
+    .h1{font-size:7vw}
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:9vw}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">Navigate with arrow keys</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     SLIDES Insert Area
+     Red Hat branded template with enterprise-grade aesthetics
+     ============================================================ -->
+
+<!-- ========== PAGE 01 · COVER ========== -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>MCP Dev Summit Mumbai · 2026</div>
+    <div>Workshop</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Workshop · 60 Minutes</div>
+    <h1 class="h-hero" style="font-size:6.5vw; line-height:1.05" data-anim>Building <span class="accent">Production-Ready</span> MCP Servers</h1>
+    <h2 class="h-sub" data-anim>Lessons from an Open Source Template</h2>
+    <p class="lead" style="max-width:60vw" data-anim>
+      Most MCP tutorials stop at "hello world." This session goes further.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>Abhishek Kumar</span><span>·</span><span>Deepak Koul</span><span>·</span><span>Red Hat</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>github.com/redhat-data-and-ai/template-mcp-server</div>
+    <div>— MCP Dev Summit Mumbai 2026 —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 02 · HELLO WORLD VS PRODUCTION ========== -->
+<section class="slide light" data-animate="directional">
+  <div class="chrome">
+    <div>The Reality Check</div>
+    <div>02 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Before / After</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>Hello World vs Production</h2>
+
+    <div class="grid-2-6-6" style="gap:5vw 4vh">
+      <div data-anim="left" style="padding:3vh 2vw; border-left:3px solid currentColor; opacity:.55">
+        <div class="kicker" style="opacity:.9">Tutorial MCP Server</div>
+        <h3 class="h-md" style="margin-top:2vh">It Works on My Laptop</h3>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.4vh; font-family:var(--text); font-size:max(14px,1.1vw); line-height:1.55">
+          <li>Single transport, stdio only</li>
+          <li>No authentication</li>
+          <li>Print statements for logging</li>
+          <li>No deployment story</li>
+          <li>One file, zero tests</li>
+        </ul>
+      </div>
+      <div data-anim="right" style="padding:3vh 2vw; border-left:3px solid var(--rh-red)">
+        <div class="kicker" style="opacity:.9">Production MCP Server</div>
+        <h3 class="h-md" style="margin-top:2vh">It Runs in Kubernetes</h3>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.4vh; font-family:var(--text); font-size:max(14px,1.1vw); line-height:1.55">
+          <li>Multiple transports: HTTP, SSE, streamable-HTTP</li>
+          <li>OAuth 2.0 with token persistence</li>
+          <li>Structured JSON logging</li>
+          <li>OpenShift manifests + CI/CD</li>
+          <li>Modular, tested, documented</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>The gap between demo and deployment</div>
+    <div>02 / 30</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 03 · ACT I DIVIDER ========== -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act I · The Gap</div>
+    <div>Act I · 03 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act I</div>
+    <h1 class="h-hero" style="font-size:8.5vw" data-anim>The Gap</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      Why most MCP servers never leave the developer's machine.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Understanding the problem before solving it</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 04 · WHAT PRODUCTION NEEDS ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Production Checklist</div>
+    <div>Act I · 04 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>What nobody tells you.</div>
+    <h2 class="h-xl" style="font-size:5vw" data-anim>What Production Actually Needs</h2>
+    <p class="lead" style="margin-bottom:2vh" data-anim>Six dimensions beyond "it returns a response."</p>
+
+    <div class="grid-6" style="margin-top:1vh; gap:3vw 5vw">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Transport</div>
+        <div class="stat-nb" style="font-size:3.2vw">3 <span class="stat-unit">protocols</span></div>
+        <div class="stat-note">HTTP, SSE, streamable-HTTP</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Security</div>
+        <div class="stat-nb" style="font-size:3.2vw">OAuth</div>
+        <div class="stat-note">Persistent token storage</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Observability</div>
+        <div class="stat-nb" style="font-size:3.2vw">JSON</div>
+        <div class="stat-note">Structured logging</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Configuration</div>
+        <div class="stat-nb" style="font-size:3.2vw">Env</div>
+        <div class="stat-note">Pydantic-validated</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Deployment</div>
+        <div class="stat-nb" style="font-size:3.2vw">K8s</div>
+        <div class="stat-note">OpenShift manifests</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Quality</div>
+        <div class="stat-nb" style="font-size:3.2vw">CI/CD</div>
+        <div class="stat-note">Tests, linting, hooks</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>template-mcp-server covers all six</div>
+    <div>Act I · Production Dimensions</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 05 · ARCHITECTURE OVERVIEW ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Architecture</div>
+    <div>Act I · 05 / 30</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div style="display:flex; flex-direction:column; justify-content:space-between; gap:3vh">
+      <div>
+        <div class="kicker" data-anim>Open source. Apache 2.0.</div>
+        <h2 class="h-xl" style="font-size:5.5vw" data-anim>
+          The Template
+        </h2>
+        <p class="lead" style="margin-top:3vh" data-anim>
+          A production-grade, open source MCP server template built at Red Hat. FastMCP + FastAPI at the core, with everything you need to go from prototype to production.
+        </p>
+        <p data-anim style="font-family:var(--text); font-size:max(14px,1.15vw); line-height:1.75; opacity:.78; margin-top:2.4vh">
+          Python 3.12+ with UV package manager, Pydantic configuration, structured logging, OAuth integration, and OpenShift deployment manifests.
+        </p>
+      </div>
+      <div class="callout" data-anim>
+        "Use this template as a starting point for your own MCP servers."
+        <div class="callout-src">— github.com/redhat-data-and-ai/template-mcp-server</div>
+      </div>
+    </div>
+    <div data-anim style="display:flex; flex-direction:column; gap:2vh; margin-top:7vh">
+      <div class="pf-card">
+        <div class="card-title"><i data-lucide="folder-tree" class="ico-md"></i> Project Structure</div>
+        <div class="card-body">
+          <code>template_mcp_server/</code> main package<br>
+          <code>deployment/openshift/</code> K8s manifests<br>
+          <code>tests/</code> unit + integration<br>
+          <code>examples/</code> FastMCP + LangGraph<br>
+          <code>docs/</code> comprehensive guides
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>aitemplates.io/templates/mcp-server</div>
+    <div>05 / 30</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 06 · ARCHITECTURE DIAGRAM ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Architecture</div>
+    <div>Act I · 06 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:3vh">
+    <div class="kicker" data-anim>How it all fits together</div>
+    <h2 class="h-xl" style="font-size:4.8vw; margin-bottom:2.5vh" data-anim>Architecture Overview</h2>
+
+    <div data-anim style="display:flex; flex-direction:column; gap:0; margin-top:1vh; max-width:88vw">
+
+      <div style="border:1px solid rgba(255,255,255,.15); border-radius:4px 4px 0 0; padding:1.8vh 2vw; text-align:center; background:rgba(255,255,255,.04)">
+        <div style="font-family:var(--mono); font-size:max(10px,.75vw); letter-spacing:.1em; opacity:.5; margin-bottom:.6vh">Clients</div>
+        <div style="font-family:var(--display); font-weight:600; font-size:max(15px,1.3vw)">
+          <i data-lucide="bot" class="ico-sm"></i> AI Agents
+          <span style="opacity:.4; margin:0 1.2vw">|</span>Claude
+          <span style="opacity:.4; margin:0 1.2vw">|</span>Cursor
+          <span style="opacity:.4; margin:0 1.2vw">|</span>LangGraph
+          <span style="opacity:.4; margin:0 1.2vw">|</span>Custom
+        </div>
+      </div>
+
+      <div style="text-align:center; font-family:var(--mono); font-size:11px; opacity:.35; line-height:2.2">&#9660;</div>
+
+      <div style="border:1px solid rgba(255,255,255,.15); padding:1.6vh 2vw; background:rgba(238,0,0,.06)">
+        <div style="font-family:var(--mono); font-size:max(10px,.75vw); letter-spacing:.1em; opacity:.5; margin-bottom:.8vh">Transport Layer</div>
+        <div style="display:flex; gap:1.5vw">
+          <div style="flex:1; border-top:2px solid var(--rh-red); padding-top:.8vh; font-family:var(--display); font-weight:600; font-size:max(14px,1.1vw)">HTTP</div>
+          <div style="flex:1; border-top:2px solid var(--rh-red); padding-top:.8vh; font-family:var(--display); font-weight:600; font-size:max(14px,1.1vw)">SSE</div>
+          <div style="flex:1; border-top:2px solid var(--rh-red); padding-top:.8vh; font-family:var(--display); font-weight:600; font-size:max(14px,1.1vw)">Streamable-HTTP</div>
+        </div>
+      </div>
+
+      <div style="border:1px solid rgba(255,255,255,.15); border-top:0; padding:1.6vh 2vw; background:rgba(255,255,255,.03)">
+        <div style="font-family:var(--mono); font-size:max(10px,.75vw); letter-spacing:.1em; opacity:.5; margin-bottom:.8vh">Auth Layer</div>
+        <div style="display:flex; gap:2vw; align-items:center">
+          <div style="font-family:var(--display); font-weight:600; font-size:max(14px,1.1vw)"><i data-lucide="shield-check" class="ico-sm"></i> OAuth 2.0</div>
+          <div style="font-family:var(--mono); font-size:max(11px,.85vw); opacity:.6">ENABLE_AUTH=True</div>
+          <div style="opacity:.3">&#9654;</div>
+          <div style="font-family:var(--display); font-weight:600; font-size:max(14px,1.1vw)"><i data-lucide="database" class="ico-sm"></i> PostgreSQL</div>
+          <div style="font-family:var(--mono); font-size:max(11px,.85vw); opacity:.6">Token persistence</div>
+        </div>
+      </div>
+
+      <div style="border:1px solid rgba(255,255,255,.15); border-top:0; padding:1.8vh 2vw; background:rgba(255,255,255,.05)">
+        <div style="font-family:var(--mono); font-size:max(10px,.75vw); letter-spacing:.1em; opacity:.5; margin-bottom:.8vh">Application Core · <span style="color:var(--rh-red-light)">FastMCP + FastAPI</span></div>
+        <div style="display:flex; gap:1.5vw">
+          <div style="flex:1; padding:1.2vh 1.2vw; border:1px solid rgba(255,255,255,.12); border-radius:3px; text-align:center">
+            <div style="font-family:var(--display); font-weight:700; font-size:max(14px,1.15vw)">Tools Registry</div>
+            <div style="font-family:var(--text); font-size:max(12px,.9vw); opacity:.6; margin-top:.4vh">@mcp.tool() decorated functions</div>
+          </div>
+          <div style="flex:1; padding:1.2vh 1.2vw; border:1px dashed rgba(255,255,255,.12); border-radius:3px; text-align:center; opacity:.5">
+            <div style="font-family:var(--display); font-weight:700; font-size:max(14px,1.15vw)">Resources</div>
+            <div style="font-family:var(--text); font-size:max(12px,.9vw); opacity:.6; margin-top:.4vh">Implemented as tools</div>
+          </div>
+          <div style="flex:1; padding:1.2vh 1.2vw; border:1px dashed rgba(255,255,255,.12); border-radius:3px; text-align:center; opacity:.5">
+            <div style="font-family:var(--display); font-weight:700; font-size:max(14px,1.15vw)">Prompts</div>
+            <div style="font-family:var(--text); font-size:max(12px,.9vw); opacity:.6; margin-top:.4vh">Implemented as tools</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid rgba(255,255,255,.15); border-top:0; border-radius:0 0 4px 4px; padding:1.4vh 2vw; background:rgba(255,255,255,.02)">
+        <div style="display:flex; gap:3vw">
+          <div style="display:flex; align-items:center; gap:.5vw; font-family:var(--text); font-size:max(13px,1vw); opacity:.7">
+            <i data-lucide="file-text" class="ico-sm"></i> structlog
+          </div>
+          <div style="display:flex; align-items:center; gap:.5vw; font-family:var(--text); font-size:max(13px,1vw); opacity:.7">
+            <i data-lucide="settings" class="ico-sm"></i> Pydantic config
+          </div>
+          <div style="display:flex; align-items:center; gap:.5vw; font-family:var(--text); font-size:max(13px,1vw); opacity:.7">
+            <i data-lucide="heart-pulse" class="ico-sm"></i> Health probes
+          </div>
+          <div style="display:flex; align-items:center; gap:.5vw; font-family:var(--text); font-size:max(13px,1vw); opacity:.7">
+            <i data-lucide="box" class="ico-sm"></i> UBI container
+          </div>
+          <div style="display:flex; align-items:center; gap:.5vw; font-family:var(--text); font-size:max(13px,1vw); opacity:.7">
+            <i data-lucide="cloud" class="ico-sm"></i> OpenShift / K8s
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="foot">
+    <div>Tools-first architecture for universal client compatibility</div>
+    <div>Act I · Architecture</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 07 · ACT II DIVIDER ========== -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act II · Under the Hood</div>
+    <div>Act II · 07 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act II</div>
+    <h1 class="h-hero" style="font-size:7.5vw" data-anim>Under the Hood</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      FastMCP, transports, auth, and logging. The four pillars of a production server.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Architecture deep dive</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 07 · FASTMCP + FASTAPI ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Core Framework</div>
+    <div>Act II · 08 / 30</div>
+  </div>
+  <div class="frame grid-2-8-4" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Pillar 01 · Framework</div>
+      <h2 class="h-xl" style="margin-top:1vh; margin-bottom:3vh" data-anim>FastMCP + FastAPI</h2>
+
+      <p class="lead" style="margin-bottom:2vh" data-anim>
+        FastMCP provides the MCP protocol layer. FastAPI provides the HTTP backbone. Together, a production server that speaks MCP natively.
+      </p>
+
+      <div data-anim style="margin-top:1vh">
+        <pre style="font-size:max(12px,.95vw)">
+from fastmcp import FastMCP
+from fastapi import FastAPI
+
+mcp = FastMCP("my-server")
+app = FastAPI()
+
+@mcp.tool()
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers."""
+    return a * b</pre>
+      </div>
+    </div>
+    <div data-anim style="display:flex; flex-direction:column; gap:2vh; margin-top:7vh">
+      <div class="pf-card">
+        <div class="card-title">Why FastMCP?</div>
+        <div class="card-body">
+          <i data-lucide="check-circle" class="ico-sm"></i> Pythonic decorator API<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Auto schema generation<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Built-in transport support<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Active community
+        </div>
+      </div>
+      <div class="pf-card">
+        <div class="card-title">Why FastAPI?</div>
+        <div class="card-body">
+          <i data-lucide="check-circle" class="ico-sm"></i> Async-first design<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> OpenAPI docs free<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Middleware ecosystem<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Battle-tested at scale
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>The best of both worlds</div>
+    <div>Act II · Framework</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 08 · TRANSPORT PROTOCOLS ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Transport Layer</div>
+    <div>Act II · 09 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Pillar 02 · Connectivity</div>
+    <h2 class="h-xl" data-anim>Three Transport Protocols</h2>
+    <p class="lead" style="margin-bottom:4vh" data-anim>One server, three ways to connect. Switch with a single env var.</p>
+
+    <div class="grid-3" style="margin-top:3vh">
+      <div class="pillar" style="padding:3vh 2vw; border-top:2px solid var(--rh-red)" data-anim>
+        <div class="ic"><i data-lucide="globe" class="ico-lg"></i></div>
+        <div class="t">HTTP</div>
+        <div class="d">
+          Standard request-response. Best for simple integrations and load-balanced deployments. Set <code>MCP_TRANSPORT_PROTOCOL=http</code>
+        </div>
+      </div>
+      <div class="pillar" style="padding:3vh 2vw; border-top:2px solid var(--rh-red)" data-anim>
+        <div class="ic"><i data-lucide="radio" class="ico-lg"></i></div>
+        <div class="t">SSE</div>
+        <div class="d">
+          Server-Sent Events for real-time streaming. Ideal for long-running tools and progress updates. Set <code>MCP_TRANSPORT_PROTOCOL=sse</code>
+        </div>
+      </div>
+      <div class="pillar" style="padding:3vh 2vw; border-top:2px solid var(--rh-red)" data-anim>
+        <div class="ic"><i data-lucide="zap" class="ico-lg"></i></div>
+        <div class="t">Streamable-HTTP</div>
+        <div class="d">
+          The newest MCP transport. Combines HTTP simplicity with streaming capability. Set <code>MCP_TRANSPORT_PROTOCOL=streamable-http</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:4vh" data-anim>
+      All three transports share the same tool definitions. Your business logic never changes.
+      <div class="callout-src">— Zero code changes to switch protocols</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>MCP_TRANSPORT_PROTOCOL=http|sse|streamable-http</div>
+    <div>Act II · Transports</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 09 · OAUTH + POSTGRESQL ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Security</div>
+    <div>Act II · 10 / 30</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div style="display:flex; flex-direction:column; justify-content:space-between; gap:3vh">
+      <div>
+        <div class="kicker" data-anim>Pillar 03 · Authentication</div>
+        <h2 class="h-xl" style="font-size:5.5vw" data-anim>
+          OAuth 2.0
+        </h2>
+        <p class="lead" style="margin-top:3vh" data-anim>
+          Enterprise-grade authentication with persistent token storage in PostgreSQL. Toggle with a single environment variable.
+        </p>
+        <div data-anim style="margin-top:2.4vh">
+          <pre style="font-size:max(12px,.95vw)">
+# Enable OAuth
+ENABLE_AUTH=True
+
+# PostgreSQL for token persistence
+DATABASE_URL=postgresql://...
+
+# Tokens survive server restarts
+# Sessions persist across deployments</pre>
+        </div>
+      </div>
+      <div class="callout" data-anim>
+        "In production, <code>ENABLE_AUTH=False</code> is not an option. The template makes auth opt-in during development and mandatory in production."
+        <div class="callout-src">— Design decision</div>
+      </div>
+    </div>
+    <div data-anim style="display:flex; flex-direction:column; gap:2vh; margin-top:7vh">
+      <div class="pf-card">
+        <div class="card-title"><i data-lucide="shield-check" class="ico-md"></i> Auth Flow</div>
+        <div class="card-body">
+          1. Client requests OAuth token<br>
+          2. Server validates credentials<br>
+          3. Token stored in PostgreSQL<br>
+          4. Subsequent requests use token<br>
+          5. Token refresh handled automatically
+        </div>
+      </div>
+      <div class="pf-card">
+        <div class="card-title"><i data-lucide="database" class="ico-md"></i> Why PostgreSQL?</div>
+        <div class="card-body">
+          Tokens survive pod restarts. Shared across replicas. Audit-friendly. Production-proven.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>ENABLE_AUTH=True</div>
+    <div>Act II · Authentication</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 10 · STRUCTURED LOGGING ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Observability</div>
+    <div>Act II · 11 / 30</div>
+  </div>
+  <div class="frame grid-2-8-4" style="padding-top:6vh">
+    <div>
+      <div class="kicker" data-anim>Pillar 04 · Logging</div>
+      <h2 class="h-xl" style="margin-top:1vh; margin-bottom:3vh" data-anim>Structured Logging</h2>
+
+      <p class="lead" style="margin-bottom:2vh" data-anim>
+        <code>print()</code> does not scale. structlog gives you machine-parseable, human-readable logs from day one.
+      </p>
+
+      <div data-anim style="margin-top:1vh">
+        <pre style="font-size:max(12px,.95vw)">
+# What you write
+logger.info("tool_executed",
+    tool="multiply", result=42,
+    duration_ms=1.2)
+
+# What you get (JSON in production)
+{"event": "tool_executed",
+ "tool": "multiply",
+ "result": 42,
+ "duration_ms": 1.2,
+ "level": "info"}</pre>
+      </div>
+    </div>
+    <div data-anim style="display:flex; flex-direction:column; gap:2vh; margin-top:7vh">
+      <div class="pf-card">
+        <div class="card-title">structlog benefits</div>
+        <div class="card-body">
+          <i data-lucide="check-circle" class="ico-sm"></i> Context binding<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> JSON + console output<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Request correlation<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Zero config in template
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>From print() to production observability</div>
+    <div>Act II · Logging</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 11 · ACT III DIVIDER ========== -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act III · Production</div>
+    <div>Act III · 12 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act III</div>
+    <h1 class="h-hero" style="font-size:7vw" data-anim>Going to Production</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      Configuration, containers, Kubernetes, and CI/CD.
+    </p>
+  </div>
+  <div class="foot">
+    <div>From laptop to cluster</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 12 · CONFIGURATION PIPELINE ========== -->
+<section class="slide light" data-animate="pipeline">
+  <div class="chrome">
+    <div>Configuration</div>
+    <div>Act III · 13 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:3vh">
+    <div class="kicker">Pydantic-powered settings</div>
+    <h2 class="h-xl" style="font-size:5vw">Environment-Based Config</h2>
+
+    <div class="pipeline-section">
+      <div class="pipeline-label">Configuration Flow</div>
+      <div class="pipeline">
+        <div class="step" data-anim="step">
+          <div class="step-nb">01</div>
+          <div class="step-title">Define</div>
+          <div class="step-desc">Pydantic model with defaults</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">02</div>
+          <div class="step-title">Load</div>
+          <div class="step-desc">Env vars, .env, ConfigMaps</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">03</div>
+          <div class="step-title">Validate</div>
+          <div class="step-desc">Type check + constraints</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">04</div>
+          <div class="step-title">Inject</div>
+          <div class="step-desc">Available app-wide</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">05</div>
+          <div class="step-title">Override</div>
+          <div class="step-desc">K8s secrets per env</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-section">
+      <div class="pipeline-label">Key Environment Variables</div>
+      <div class="pipeline" data-cols="4">
+        <div class="step" data-anim="step">
+          <div class="step-title">MCP_HOST</div>
+          <div class="step-desc">localhost</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-title">MCP_PORT</div>
+          <div class="step-desc">5001</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-title">ENABLE_AUTH</div>
+          <div class="step-desc">False</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-title">LOG_LEVEL</div>
+          <div class="step-desc">INFO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>No magic. No hidden config. Everything explicit.</div>
+    <div>Act III · Configuration</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 13 · CONTAINER STRATEGY ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Containers</div>
+    <div>Act III · 14 / 30</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:4vh">
+    <div>
+      <div class="kicker" data-anim>Container-first design</div>
+      <h2 class="h-xl" style="font-size:5vw" data-anim>UBI Base Image</h2>
+      <p class="lead" style="margin-top:2vh" data-anim>
+        Red Hat Universal Base Image. Production-hardened, CVE-scanned, enterprise-supported.
+      </p>
+      <div data-anim style="margin-top:2vh">
+        <pre style="font-size:max(12px,.95vw)">
+FROM registry.access.redhat.com/ubi9/python-312
+COPY . /app
+WORKDIR /app
+RUN pip install --no-cache-dir -r requirements.txt
+EXPOSE 5001
+CMD ["python", "-m", "template_mcp_server"]</pre>
+      </div>
+    </div>
+    <div data-anim style="display:flex; flex-direction:column; gap:2vh; margin-top:5vh">
+      <div class="pf-card">
+        <div class="card-title"><i data-lucide="box" class="ico-md"></i> Why UBI?</div>
+        <div class="card-body">
+          <i data-lucide="check-circle" class="ico-sm"></i> RHEL-compatible<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> CVE-scanned daily<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Free to use<br>
+          <i data-lucide="check-circle" class="ico-sm"></i> Minimal attack surface
+        </div>
+      </div>
+      <div class="pf-card">
+        <div class="card-title"><i data-lucide="terminal" class="ico-md"></i> Build and run</div>
+        <div class="card-body">
+          <code>make container-build</code><br>
+          <code>make container-run</code><br>
+          Podman or Docker. Same Dockerfile.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>make container-build && make container-run</div>
+    <div>Act III · Containers</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 14 · OPENSHIFT DEPLOYMENT ========== -->
+<section class="slide light" data-animate="pipeline">
+  <div class="chrome">
+    <div>Kubernetes</div>
+    <div>Act III · 15 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker">OpenShift-ready from day one</div>
+    <h2 class="h-xl">Deployment Manifests</h2>
+
+    <div class="pipeline-section">
+      <div class="pipeline-label">Deploy to OpenShift / Kubernetes</div>
+      <div class="pipeline">
+        <div class="step" data-anim="step">
+          <div class="step-nb">01</div>
+          <div class="step-title">Build</div>
+          <div class="step-desc">Container image from UBI base</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">02</div>
+          <div class="step-title">Push</div>
+          <div class="step-desc">Push to Quay.io or internal registry</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">03</div>
+          <div class="step-title">Configure</div>
+          <div class="step-desc">Kustomize overlays for dev / staging / prod</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">04</div>
+          <div class="step-title">Deploy</div>
+          <div class="step-desc">Apply manifests with oc apply or kubectl</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">05</div>
+          <div class="step-title">Monitor</div>
+          <div class="step-desc">Liveness + readiness probes, health endpoints</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-section">
+      <div class="pipeline-label">Included Manifests</div>
+      <div class="pipeline" data-cols="4">
+        <div class="step" data-anim="step">
+          <div class="step-nb"><i data-lucide="box" class="ico-sm"></i></div>
+          <div class="step-title">Deployment</div>
+          <div class="step-desc">Pod spec, replicas, resources</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb"><i data-lucide="network" class="ico-sm"></i></div>
+          <div class="step-title">Service</div>
+          <div class="step-desc">Internal networking and port mapping</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb"><i data-lucide="route" class="ico-sm"></i></div>
+          <div class="step-title">Route</div>
+          <div class="step-desc">External access with TLS termination</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb"><i data-lucide="key-round" class="ico-sm"></i></div>
+          <div class="step-title">Secrets</div>
+          <div class="step-desc">OAuth creds, DB connection strings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>deployment/openshift/ has everything you need</div>
+    <div>Act III · Kubernetes</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 15 · BIG QUOTE ========== -->
+<section class="slide hero dark" data-animate="quote">
+  <div class="chrome">
+    <div>The Insight</div>
+    <div>16 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The hard truth</div>
+    <blockquote style="font-family:var(--display); font-weight:700; font-size:5vw; line-height:1.15; letter-spacing:-.01em; max-width:72vw">
+      <span data-anim="line" style="display:block">"The last 20% of</span>
+      <span data-anim="line" style="display:block">production readiness</span>
+      <span data-anim="line" style="display:block">takes 80% of the effort."</span>
+    </blockquote>
+    <p class="lead" style="max-width:55vw; opacity:.65" data-anim>
+      That is exactly the 20% this template gives you for free.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Skip the boilerplate. Focus on your tools.</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 16 · CI/CD & QUALITY ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Quality Gates</div>
+    <div>Act III · 17 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:6vh">
+    <div class="kicker" data-anim>Built into the template.</div>
+    <h2 class="h-xl" data-anim>CI/CD and Quality</h2>
+    <p class="lead" style="margin-bottom:5vh" data-anim>GitHub Actions workflows included out of the box.</p>
+
+    <div class="grid-6" style="margin-top:4vh">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Testing</div>
+        <div class="stat-nb" style="font-size:4.2vw">pytest</div>
+        <div class="stat-note">Unit + integration + container tests</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Linting</div>
+        <div class="stat-nb" style="font-size:4.2vw">ruff</div>
+        <div class="stat-note">Fast Python linter, replaces flake8</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Formatting</div>
+        <div class="stat-nb" style="font-size:4.2vw">black</div>
+        <div class="stat-note">Opinionated, zero-config formatter</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Pre-commit</div>
+        <div class="stat-nb" style="font-size:4.2vw">hooks</div>
+        <div class="stat-note">Catch issues before they reach CI</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Coverage</div>
+        <div class="stat-nb" style="font-size:4.2vw">codecov</div>
+        <div class="stat-note">Track and report test coverage</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Security</div>
+        <div class="stat-nb" style="font-size:4.2vw">scan</div>
+        <div class="stat-note">Automated vulnerability scanning</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Every PR goes through the full pipeline</div>
+    <div>Act III · Quality</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 17 · DESIGN DECISIONS ========== -->
+<section class="slide dark" data-animate="directional">
+  <div class="chrome">
+    <div>Design Decisions</div>
+    <div>18 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>What we chose and why</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>Key Design Decisions</h2>
+
+    <div class="grid-2-6-6" style="gap:5vw 4vh">
+      <div data-anim="left" style="padding:3vh 2vw; border-left:3px solid currentColor; opacity:.55">
+        <div class="kicker" style="opacity:.9">Alternatives we considered</div>
+        <h3 class="h-md" style="margin-top:2vh">The Road Not Taken</h3>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.4vh; font-family:var(--text); font-size:max(14px,1.1vw); line-height:1.55">
+          <li>TypeScript SDK (locked to Node ecosystem)</li>
+          <li>Custom auth middleware (reinventing the wheel)</li>
+          <li>File-based logging (doesn't scale in K8s)</li>
+          <li>Docker Compose only (no K8s story)</li>
+          <li>Resources + Prompts registries (client compat issues)</li>
+        </ul>
+      </div>
+      <div data-anim="right" style="padding:3vh 2vw; border-left:3px solid var(--rh-red)">
+        <div class="kicker" style="opacity:.9">What we chose</div>
+        <h3 class="h-md" style="margin-top:2vh">The Decisions That Stuck</h3>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.4vh; font-family:var(--text); font-size:max(14px,1.1vw); line-height:1.55">
+          <li>Python + FastMCP (widest AI ecosystem reach)</li>
+          <li>OAuth 2.0 standard (enterprise-compatible)</li>
+          <li>structlog JSON (cloud-native observability)</li>
+          <li>OpenShift manifests (production Kubernetes)</li>
+          <li>Tools-first architecture (universal client support)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Every decision has a tradeoff. Know yours.</div>
+    <div>Design Decisions</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 18 · ACT IV DIVIDER ========== -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act IV · Hands-On Lab</div>
+    <div>Act IV · 19 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act IV</div>
+    <h1 class="h-hero" style="font-size:7vw" data-anim>Hands-On Lab</h1>
+    <p class="lead" style="max-width:55vw" data-anim>
+      Clone. Build a tool. Run. Test with Postman. Connect an agent.
+    </p>
+  </div>
+  <div class="foot">
+    <div>Open your terminal and follow along</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 19 · LAB: CLONE AND SETUP ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Lab · Step 1</div>
+    <div>Act IV · 20 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Hands-on · Clone and setup</div>
+    <h2 class="h-xl" style="margin-bottom:3vh" data-anim>Clone the Template</h2>
+
+    <div class="grid-2-6-6" style="gap:4vw 3vh">
+      <div data-anim>
+        <pre style="font-size:max(13px,1.05vw); line-height:1.7">
+# Option A: Use GitHub template button
+# github.com/redhat-data-and-ai/template-mcp-server
+# Click "Use this template" → "Create new repo"
+
+# Option B: Clone directly
+git clone https://github.com/redhat-data-and-ai\
+/template-mcp-server.git
+cd template-mcp-server
+
+# Install dependencies (uses UV)
+make setup
+
+# Verify installation
+make test</pre>
+      </div>
+      <div data-anim style="display:flex; flex-direction:column; gap:2.4vh">
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="terminal" class="ico-md"></i> Prerequisites</div>
+          <div class="card-body">
+            <i data-lucide="check-circle" class="ico-sm"></i> Python 3.12+<br>
+            <i data-lucide="check-circle" class="ico-sm"></i> Git<br>
+            <i data-lucide="check-circle" class="ico-sm"></i> Make<br>
+            <i data-lucide="check-circle" class="ico-sm"></i> UV (auto-installed by make setup)
+          </div>
+        </div>
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="folder-open" class="ico-md"></i> What you get</div>
+          <div class="card-body">
+            Full project with example tools, tests, CI/CD, Dockerfile, and OpenShift manifests ready to customize.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>make setup handles everything</div>
+    <div>Act IV · Clone</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 20 · LAB: WRITE A CUSTOM TOOL ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Lab · Step 2</div>
+    <div>Act IV · 21 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Hands-on · Write your tool</div>
+    <h2 class="h-xl" style="margin-bottom:3vh" data-anim>Add a Custom Tool</h2>
+
+    <div class="grid-2-6-6" style="gap:4vw 3vh">
+      <div data-anim>
+        <p class="lead" style="margin-bottom:2vh">Open <code>template_mcp_server/tools/</code> and create a new file:</p>
+        <pre style="font-size:max(13px,1.05vw); line-height:1.65">
+# tools/weather.py
+from fastmcp import FastMCP
+
+mcp = FastMCP("weather")
+
+@mcp.tool()
+def get_weather(city: str) -> dict:
+    """Get current weather for a city."""
+    return {
+        "city": city,
+        "temp": "28°C",
+        "condition": "Sunny"
+    }</pre>
+      </div>
+      <div data-anim style="display:flex; flex-direction:column; gap:2.4vh">
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="sparkles" class="ico-md"></i> That's it</div>
+          <div class="card-body">
+            The <code>@mcp.tool()</code> decorator does the heavy lifting:<br><br>
+            <i data-lucide="check-circle" class="ico-sm"></i> Auto-generates JSON schema<br>
+            <i data-lucide="check-circle" class="ico-sm"></i> Validates input types<br>
+            <i data-lucide="check-circle" class="ico-sm"></i> Handles serialization<br>
+            <i data-lucide="check-circle" class="ico-sm"></i> Registers with MCP protocol
+          </div>
+        </div>
+        <div class="callout" data-anim>
+          Type hints become the tool's schema. Docstrings become the tool's description for the AI agent.
+          <div class="callout-src">— Python types = MCP schema</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>One decorator. Full MCP compliance.</div>
+    <div>Act IV · Write</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 21 · LAB: RUN AND TEST LOCALLY ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Lab · Step 3</div>
+    <div>Act IV · 22 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Hands-on · Run locally</div>
+    <h2 class="h-xl" style="margin-bottom:3vh" data-anim>Start the Server</h2>
+
+    <div class="grid-2-6-6" style="gap:4vw 3vh">
+      <div data-anim>
+        <pre style="font-size:max(13px,1.05vw); line-height:1.65">
+# Start the MCP server
+make run
+# http://localhost:5001
+
+# Check health
+curl http://localhost:5001/health
+
+# List available tools
+curl http://localhost:5001/mcp/tools
+
+# Call your tool
+curl -X POST http://localhost:5001/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"method": "tools/call",
+       "params": {"name": "get_weather",
+       "arguments": {"city": "Mumbai"}}}'</pre>
+      </div>
+      <div data-anim style="display:flex; flex-direction:column; gap:2.4vh">
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="play" class="ico-md"></i> Expected output</div>
+          <div class="card-body">
+            <pre style="font-size:max(11px,.85vw); margin:0; background:none; padding:0">
+{"city": "Mumbai",
+ "temp": "28°C",
+ "condition": "Sunny",
+ "humidity": "65%"}</pre>
+          </div>
+        </div>
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="settings" class="ico-md"></i> Transport switch</div>
+          <div class="card-body">
+            <code>MCP_TRANSPORT_PROTOCOL=sse make run</code><br>
+            Same tools, different transport. Try all three.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>make run · http://localhost:5001</div>
+    <div>Act IV · Run</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 22 · LAB: TEST WITH POSTMAN / MCP INSPECTOR ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Lab · Step 4</div>
+    <div>Act IV · 23 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Hands-on · Verify your server</div>
+    <h2 class="h-xl" style="margin-bottom:3vh" data-anim>Test with Postman or MCP Inspector</h2>
+
+    <div class="grid-2-6-6" style="gap:4vw 3vh">
+      <div data-anim style="display:flex; flex-direction:column; gap:3vh">
+        <div>
+          <h3 class="h-md" style="margin-bottom:1.5vh"><i data-lucide="send" class="ico-md"></i> Postman</h3>
+          <div style="font-family:var(--text); font-size:max(14px,1.1vw); line-height:1.65; opacity:.85">
+            <strong>1.</strong> Create new POST request<br>
+            <strong>2.</strong> URL: <code>http://localhost:5001/mcp</code><br>
+            <strong>3.</strong> Body (JSON):<br>
+          </div>
+          <pre style="font-size:max(12px,.9vw); line-height:1.5; margin-top:1vh">
+{"jsonrpc": "2.0", "id": 1,
+ "method": "tools/call",
+ "params": {
+   "name": "get_weather",
+   "arguments": {"city": "Mumbai"}
+ }
+}</pre>
+        </div>
+      </div>
+      <div data-anim style="display:flex; flex-direction:column; gap:2.4vh">
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="search" class="ico-md"></i> MCP Inspector</div>
+          <div class="card-body">
+            <pre style="font-size:max(11px,.85vw); margin:0; background:none; padding:0">
+npx @modelcontextprotocol/inspector \
+  http://localhost:5001/mcp</pre>
+            <br>Visual UI to browse tools, test inputs, and inspect responses in real time.
+          </div>
+        </div>
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="file-text" class="ico-md"></i> OpenAPI docs</div>
+          <div class="card-body">
+            FastAPI auto-generates interactive docs at <code>/docs</code> — browse and test all endpoints from the browser.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Verify before you ship</div>
+    <div>Act IV · Test</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 23 · LAB: CONNECT TO AN AI AGENT ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Lab · Step 5</div>
+    <div>Act IV · 24 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:3vh">
+    <div class="kicker" data-anim>Hands-on · Wire it up</div>
+    <h2 class="h-xl" style="font-size:5vw; margin-bottom:2vh" data-anim>Connect to an AI Agent</h2>
+
+    <div class="grid-2-6-6" style="gap:3vw 2vh">
+      <div data-anim>
+        <h3 class="h-md" style="margin-bottom:1vh">Claude Desktop / VS Code</h3>
+        <pre style="font-size:max(12px,.95vw); line-height:1.45">
+// claude_desktop_config.json
+{
+  "mcpServers": {
+    "my-server": {
+      "url": "http://localhost:5001/mcp"
+    }
+  }
+}</pre>
+        <h3 class="h-md" style="margin-top:2vh; margin-bottom:1vh">LangGraph / LangChain</h3>
+        <pre style="font-size:max(12px,.95vw); line-height:1.45">
+from langchain_mcp_adapters import MCPClient
+client = MCPClient("http://localhost:5001/mcp")
+tools = client.get_tools()</pre>
+      </div>
+      <div data-anim style="display:flex; flex-direction:column; gap:2vh">
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="bot" class="ico-md"></i> Try it</div>
+          <div class="card-body">
+            Ask your AI agent: <em>"What's the weather in Mumbai?"</em><br>
+            The agent discovers your tool, calls it, and returns the response.
+          </div>
+        </div>
+        <div class="pf-card">
+          <div class="card-title"><i data-lucide="plug" class="ico-md"></i> Any MCP client works</div>
+          <div class="card-body">
+            Claude, Cursor, Windsurf, Continue, Cline, LangGraph, custom agents.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>One server, every AI agent</div>
+    <div>Act IV · Connect</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 24 · MISTAKES WE AVOIDED ========== -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Lessons Learned</div>
+    <div>25 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>So you don't have to</div>
+    <h2 class="h-xl" style="margin-bottom:3vh" data-anim>Mistakes We Avoided</h2>
+
+    <div style="display:flex; flex-direction:column; gap:1.8vh; margin-top:2vh">
+      <div class="rowline" data-anim>
+        <div class="k"><i data-lucide="x-circle" class="ico-md" style="color:var(--rh-red)"></i></div>
+        <div class="v">Coupling tool logic to transport layer. Tools should be transport-agnostic.</div>
+        <div class="m">Architecture</div>
+      </div>
+      <div class="rowline" data-anim>
+        <div class="k"><i data-lucide="x-circle" class="ico-md" style="color:var(--rh-red)"></i></div>
+        <div class="v">Storing tokens in memory. Pod restarts kill all sessions. Use PostgreSQL.</div>
+        <div class="m">Security</div>
+      </div>
+      <div class="rowline" data-anim>
+        <div class="k"><i data-lucide="x-circle" class="ico-md" style="color:var(--rh-red)"></i></div>
+        <div class="v">Using Resources and Prompts registries. Many clients only support Tools.</div>
+        <div class="m">Compatibility</div>
+      </div>
+      <div class="rowline" data-anim>
+        <div class="k"><i data-lucide="x-circle" class="ico-md" style="color:var(--rh-red)"></i></div>
+        <div class="v">Hardcoded config values. Everything must come from environment variables.</div>
+        <div class="m">Operations</div>
+      </div>
+      <div class="rowline" data-anim>
+        <div class="k"><i data-lucide="x-circle" class="ico-md" style="color:var(--rh-red)"></i></div>
+        <div class="v">Skipping SSL/TLS in staging. Certificate issues always surface in production.</div>
+        <div class="m">Security</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="foot">
+    <div>Learn from our mistakes, not yours</div>
+    <div>Lessons</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 25 · ECOSYSTEM BENEFITS ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Ecosystem Impact</div>
+    <div>26 / 30</div>
+  </div>
+  <div class="frame" style="padding-top:6vh">
+    <div class="kicker" data-anim>Why this matters.</div>
+    <h2 class="h-xl" data-anim>Benefits to the MCP Ecosystem</h2>
+    <p class="lead" style="margin-bottom:4vh" data-anim>Open source means everyone wins.</p>
+
+    <div class="grid-3" style="margin-top:3vh">
+      <div class="pillar" style="padding:3vh 2vw; border-top:2px solid var(--rh-red)" data-anim>
+        <div class="ic"><i data-lucide="rocket" class="ico-lg"></i></div>
+        <div class="t">Faster Adoption</div>
+        <div class="d">
+          Developers skip months of boilerplate. Clone, customize, deploy. Production-ready MCP servers in hours, not weeks.
+        </div>
+      </div>
+      <div class="pillar" style="padding:3vh 2vw; border-top:2px solid var(--rh-red)" data-anim>
+        <div class="ic"><i data-lucide="shield-check" class="ico-lg"></i></div>
+        <div class="t">Enterprise Confidence</div>
+        <div class="d">
+          OAuth, structured logging, and Kubernetes deployment remove the barriers that keep MCP out of enterprise environments.
+        </div>
+      </div>
+      <div class="pillar" style="padding:3vh 2vw; border-top:2px solid var(--rh-red)" data-anim>
+        <div class="ic"><i data-lucide="git-branch" class="ico-lg"></i></div>
+        <div class="t">Community Standard</div>
+        <div class="d">
+          An open, opinionated template establishes patterns that the community can build on, fork, and improve together.
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="foot">
+    <div>Apache 2.0 licensed · Free to use and modify</div>
+    <div>Ecosystem</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 26 · QUESTION PAGE ========== -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>The Question</div>
+    <div>27 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:8vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Your move</div>
+    <h1 class="h-hero" style="font-size:6vw; line-height:1.15">
+      <span data-anim style="display:block">What will you build</span>
+      <span data-anim style="display:block">with your first</span>
+      <span data-anim style="display:block">production MCP server?</span>
+    </h1>
+    <p class="lead" style="max-width:50vw" data-anim>
+      Database connectors. API orchestrators. Business rule engines. The protocol is the platform.
+    </p>
+  </div>
+  <div class="foot">
+    <div>The template handles the infrastructure. You handle the innovation.</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 27 · GETTING STARTED ========== -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Resources</div>
+    <div>28 / 30</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:6vh">
+    <div style="display:flex; flex-direction:column; gap:3vh">
+      <div>
+        <div class="kicker" data-anim>Everything you need</div>
+        <h2 class="h-xl" style="font-size:5.5vw" data-anim>
+          Get Started Today
+        </h2>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:2vh">
+        <div class="rowline" data-anim>
+          <div class="k"><i data-lucide="github" class="ico-md"></i></div>
+          <div class="v">github.com/redhat-data-and-ai/template-mcp-server</div>
+          <div class="m">Source</div>
+        </div>
+        <div class="rowline" data-anim>
+          <div class="k"><i data-lucide="globe" class="ico-md"></i></div>
+          <div class="v">aitemplates.io/templates/mcp-server</div>
+          <div class="m">Docs</div>
+        </div>
+        <div class="rowline" data-anim>
+          <div class="k"><i data-lucide="book-open" class="ico-md"></i></div>
+          <div class="v">Architecture docs, deployment guides, 5-minute tutorials</div>
+          <div class="m">Guides</div>
+        </div>
+        <div class="rowline" data-anim>
+          <div class="k"><i data-lucide="code" class="ico-md"></i></div>
+          <div class="v">FastMCP + LangGraph integration examples</div>
+          <div class="m">Examples</div>
+        </div>
+      </div>
+    </div>
+    <div data-anim style="display:flex; flex-direction:column; gap:2vh; margin-top:5vh">
+      <div class="pf-card" style="border-left:3px solid var(--rh-red)">
+        <div class="card-title">Quick start</div>
+        <div class="card-body">
+          <pre style="font-size:max(12px,.9vw); margin:0; background:none; padding:0">
+git clone https://github.com/\
+redhat-data-and-ai/template-mcp-server
+cd template-mcp-server
+make setup
+make run
+# Live at http://localhost:5001</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Open source. Apache 2.0. Free to use.</div>
+    <div>Resources</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 28 · FINAL TAKEAWAY QUOTE ========== -->
+<section class="slide dark" data-animate="quote">
+  <div class="chrome">
+    <div>The Takeaway</div>
+    <div>29 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>What to remember</div>
+    <blockquote style="font-family:var(--display); font-weight:700; font-size:4.6vw; line-height:1.2; letter-spacing:-.01em; max-width:72vw">
+      <span data-anim="line" style="display:block">"Don't build MCP infrastructure.</span>
+      <span data-anim="line" style="display:block">Build MCP tools.</span>
+      <span data-anim="line" style="display:block">Let the template handle the rest."</span>
+    </blockquote>
+    <p class="lead" style="max-width:55vw; opacity:.65" data-anim>
+      Your value is in the tools you create, not the plumbing around them.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>— Abhishek Kumar &amp; Deepak Koul</span><span>·</span><span>MCP Dev Summit Mumbai 2026</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Focus on what matters</div>
+    <div>— · —</div>
+  </div>
+</section>
+
+<!-- ========== PAGE 29 · THANK YOU ========== -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>MCP Dev Summit Mumbai · 2026</div>
+    <div>30 / 30</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Thank you</div>
+    <h1 class="h-hero" style="font-size:8vw" data-anim>Questions?</h1>
+    <p class="lead" style="max-width:60vw" data-anim>
+      Let's build production-ready MCP servers together.
+    </p>
+    <div style="display:flex; flex-direction:column; gap:1.6vh; margin-top:4vh">
+      <div class="meta-row" data-anim>
+        <span><i data-lucide="github" class="ico-sm"></i></span>
+        <span>github.com/redhat-data-and-ai/template-mcp-server</span>
+      </div>
+      <div class="meta-row" data-anim>
+        <span><i data-lucide="globe" class="ico-sm"></i></span>
+        <span>aitemplates.io/templates/mcp-server</span>
+      </div>
+      <div class="meta-row" data-anim>
+        <span><i data-lucide="users" class="ico-sm"></i></span>
+        <span>Abhishek Kumar · Deepak Koul · Red Hat</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Building Production-Ready MCP Servers</div>
+    <div>— 2026 —</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+/* =============== WebGL Dual Background ===============
+   Dark: Red Hat inspired geometric flow with subtle red accents
+   Light: Clean enterprise gradient with soft patterns
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*12.0-u_time*3.5)*exp(-md*2.5);p+=mr*0.06;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.08/i*sin(i*2.5*p.y+u_time*0.35)+0.04;
+    p.y+=0.08/i*cos(i*2.0*p.x+u_time*0.28)-0.04;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  // Red Hat dark palette - near black with subtle red warmth
+  vec3 a=vec3(0.08,0.06,0.06);
+  vec3 b=vec3(0.04,0.02,0.02);
+  vec3 c=vec3(1.0,0.8,0.8);
+  vec3 d=vec3(0.0,0.1,0.15);
+  vec3 col=palette(r*1.2+p0.x*0.4+u_time*0.08,a,b,c,d);
+  // Subtle red accent dispersion
+  float disp=sin(r*20.0-u_time*1.2+ang*1.5)*0.5+0.5;
+  col+=vec3(disp*0.025,disp*0.008,disp*0.008);
+  float hi=pow(sin(p.x*3.0+p.y*2.5+u_time)*0.5+0.5,10.0);
+  col+=hi*0.06;
+  vec3 base=vec3(0.082,0.082,0.082);
+  col=mix(base,col,0.82);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<4;i++){v+=a*noise(p);p=m*p*2.0;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*4.0)*0.02;
+  vec2 q=vec2(fbm(p*1.6+u_time*0.05),fbm(p*1.6+vec2(4.8,1.2)+u_time*0.04));
+  vec2 r=vec2(fbm(p*1.8+q*1.2+vec2(1.5,8.5)+u_time*0.04),
+              fbm(p*1.8+q*1.2+vec2(7.5,2.5)+u_time*0.03));
+  float f=fbm(p*2.0+r*1.3);
+  // Clean white enterprise palette
+  vec3 lightGray=vec3(0.96,0.96,0.96);
+  vec3 white=vec3(1.0,1.0,1.0);
+  vec3 col=mix(lightGray,white,f);
+  // Very subtle warm tint
+  float ph=r.x*2.0+u_time*0.3;
+  col+=vec3(0.02,0.01,0.01)*sin(ph);
+  float hl=smoothstep(0.5,0.9,f);
+  col+=hl*0.03;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){
+  const t=(Date.now()-t0)/1000;
+  drawDark(t);drawLight(t);
+  requestAnimationFrame(loop);
+})();
+
+// =============== Navigation ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  if(window.__playSlide) setTimeout(()=>window.__playSlide(idx), 450);
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+/* =============== ESC Index View =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'var(--rh-red)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='var(--rh-red)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'var(--rh-red)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+    if(window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+1);
+    return;
+  }
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){
+    if(wheelAcc>0 && window.__pipeAdvance && window.__pipeAdvance()){
+      wheelAcc=0;
+    }else{
+      go(idx+(wheelAcc>0?1:-1));wheelAcc=0;
+    }
+  }
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){
+    if(dx<0 && window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+(dx<0?1:-1));
+  }
+},{passive:true});
+
+go(0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<!-- ============ Motion One Animation Engine ============ -->
+<script type="module">
+let motion;
+try {
+  motion = await import('./motion.min.js');
+} catch(e1) {
+  try {
+    motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  } catch(e2) {
+    console.warn('[motion] local + CDN both failed, disabling animations', e1, e2);
+    document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+    document.querySelectorAll('[data-animate="pipeline"] [data-anim]').forEach(el=>el.style.opacity='1');
+  }
+}
+
+if(motion){
+  const { animate, stagger } = motion;
+  document.body.classList.add('motion-ready');
+  const EASE = [.22, 1, .36, 1];
+  const slides = [...document.querySelectorAll('.slide')];
+  let pipeStep = -1;
+  let lastIdx = -1;
+
+  function resetAnims(slide){
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='';
+      el.style.transform='';
+    });
+  }
+
+  function playSlide(i){
+    const slide = slides[i];
+    if(!slide) return;
+    lastIdx = i;
+    const recipe = slide.dataset.animate || (slide.classList.contains('hero') ? 'hero' : 'cascade');
+
+    if(recipe === 'pipeline'){
+      pipeStep = -1;
+      slide.querySelectorAll('[data-anim]').forEach(el=>{
+        el.style.opacity='0.15';
+        el.style.transform='none';
+      });
+      return;
+    }
+
+    resetAnims(slide);
+    const all = [...slide.querySelectorAll('[data-anim]')];
+    if(!all.length) return;
+
+    if(recipe === 'directional'){
+      const lefts  = all.filter(el=>el.dataset.anim==='left');
+      const divs   = all.filter(el=>el.dataset.anim==='divider');
+      const rights = all.filter(el=>el.dataset.anim==='right');
+      const others = all.filter(el=>!['left','right','divider'].includes(el.dataset.anim));
+      if(others.length) animate(others, {opacity:[0,1], y:[12,0]}, {duration:.6, delay:stagger(.1, {start:.15}), easing:EASE});
+      if(lefts.length)  animate(lefts,  {opacity:[0,1], x:[-24,0]}, {duration:.8, delay:.35, easing:EASE});
+      if(divs.length)   animate(divs,   {opacity:[0,.25]},          {duration:.5, delay:.9});
+      if(rights.length) animate(rights, {opacity:[0,1], x:[24,0]},  {duration:.8, delay:1.0, easing:EASE});
+      return;
+    }
+
+    if(recipe === 'quote'){
+      const lines = all.filter(el=>el.dataset.anim==='line');
+      const others = all.filter(el=>el.dataset.anim!=='line');
+      if(others.length) animate(others, {opacity:[0,1], y:[8,0]},    {duration:.6, delay:stagger(.12, {start:.2}), easing:EASE});
+      if(lines.length)  animate(lines,  {opacity:[.35,1], y:[10,0]}, {duration:.8, delay:stagger(.55, {start:.5}), easing:EASE});
+      return;
+    }
+
+    if(recipe === 'hero'){
+      animate(all, {opacity:[0,1], y:[14,0]}, {duration:.9, delay:stagger(.16, {start:.2}), easing:EASE});
+      return;
+    }
+
+    // default: cascade
+    animate(all, {opacity:[0,1], y:[16,0]}, {duration:.75, delay:stagger(.1, {start:.15}), easing:EASE});
+  }
+
+  function pipeAdvance(){
+    const slide = slides[lastIdx];
+    if(!slide || slide.dataset.animate !== 'pipeline') return false;
+    const steps  = [...slide.querySelectorAll('[data-anim="step"]')];
+    const arrows = [...slide.querySelectorAll('[data-anim="arrow"]')];
+    if(pipeStep >= steps.length - 1) return false;
+    pipeStep++;
+    animate(steps[pipeStep], {opacity:[0.15,1], y:[8,0]}, {duration:.5, easing:EASE});
+    if(pipeStep > 0 && arrows[pipeStep-1]){
+      animate(arrows[pipeStep-1], {opacity:[0.15,.7]}, {duration:.3, delay:.15});
+    }
+    return true;
+  }
+
+  window.__playSlide = playSlide;
+  window.__pipeAdvance = pipeAdvance;
+
+  playSlide(0);
+}
+</script>
+</body>
+</html>
