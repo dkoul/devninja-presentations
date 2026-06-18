@@ -33,5 +33,19 @@
     "description": "Preparing and empowering the next generation for success in the age of Generative AI",
     "tags": ["AI", "Education", "Future"],
     "date": "2026-05-21"
+  },
+  {
+    "slug": "token-economics",
+    "title": "AI Agents Gone Wild: Token Economics Survival Guide",
+    "description": "Learn what AI agents really are, why your wallet cries when using them, and how to save 40-80% on your LLM bills. A practical guide to token economics and cost optimization.",
+    "tags": ["AI", "Token Economics", "Cost Optimization"],
+    "date": "2026-06-18"
+  },
+  {
+    "slug": "co-branded-meetup-proposal",
+    "title": "Agentic Testing Meetup Proposal",
+    "description": "A co-branded community meetup proposal: Pune AI Collective x The Test Trove. Deep-dive into AI-powered testing agents, browser automation, and intelligent test frameworks.",
+    "tags": ["Testing", "AI Agents", "Community"],
+    "date": "2026-06-18"
   }
 ]
