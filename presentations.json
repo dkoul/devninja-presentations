@@ -35,6 +35,13 @@
     "date": "2026-05-21"
   },
   {
+    "slug": "building-production-ready-mcp-servers",
+    "title": "Building Production-Ready MCP Servers: Lessons from an Open Source Template",
+    "description": "A 60-minute workshop walking through how we built a production-grade, open source MCP server template at Red Hat, covering FastMCP + FastAPI integration, multiple transport protocols, OAuth, structured logging, and OpenShift deployment.",
+    "tags": ["MCP", "AI", "Open Source", "Kubernetes", "Workshop"],
+    "date": "2026-05-26"
+  },
+  {
     "slug": "token-economics",
     "title": "AI Agents Gone Wild: Token Economics Survival Guide",
     "description": "Learn what AI agents really are, why your wallet cries when using them, and how to save 40-80% on your LLM bills. A practical guide to token economics and cost optimization.",
