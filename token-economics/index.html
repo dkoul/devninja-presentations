@@ -678,6 +678,47 @@
   </div>
 </section>
 
+<!-- ============ SLIDE 10B: Prompt Caching in Practice ============ -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Prompt Caching in Practice</div>
+    <div>09.5 / 18</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker" data-anim>Simulation</div>
+    <h2 class="h-xl" data-anim>How a User Would Leverage It</h2>
+
+    <div class="grid-2-6-6" style="margin-top:3vh; gap:2.5vw">
+      <div data-anim style="padding:3vh 2vw; border:1px solid rgba(255,255,255,.18); border-radius:18px; background:rgba(255,255,255,.06)">
+        <div class="kicker" style="margin-bottom:1.2vh; opacity:.9">Request 1</div>
+        <div style="font-family:var(--mono); font-size:max(13px,1vw); line-height:1.7; opacity:.92">
+          system_prompt = “You are a coding copilot...”<br>
+          tools = [search_repo, run_tests]<br>
+          user_msg = “Explain the auth flow”<br><br>
+          <span style="color:#9fe3ff">Result: cache write</span>
+        </div>
+      </div>
+      <div data-anim style="padding:3vh 2vw; border:1px solid rgba(255,255,255,.18); border-radius:18px; background:rgba(255,255,255,.06)">
+        <div class="kicker" style="margin-bottom:1.2vh; opacity:.9">Request 2</div>
+        <div style="font-family:var(--mono); font-size:max(13px,1vw); line-height:1.7; opacity:.92">
+          same system_prompt + same tool schema<br>
+          user_msg = “Now explain the deployment path”<br><br>
+          <span style="color:#9fe3ff">Result: cache hit, much cheaper</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:3vh; max-width:70vw" data-anim>
+      The user keeps the static context fixed and changes only the latest user message. That makes the prompt prefix reusable and the cache effective.
+      <div class="callout-src">Practical Pattern</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Same prefix, new question</div>
+    <div>Prompt Caching</div>
+  </div>
+</section>
+
 <!-- ============ SLIDE 11: Tip 3 - Skills vs Context ============ -->
 <section class="slide dark">
   <div class="chrome">
